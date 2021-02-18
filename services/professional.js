@@ -3,10 +3,9 @@ const Professional = require( '../models/professional' );
 module.exports = class ProfessionalServices {
     /**
      * save a new Professional into the database
-     * @param { Professional } professional 
+     * @param { data } data 
      */
-    async save( data ){
-        /**ToDo*/    
+    async save( data ){    
         let {
             name, email, cpf, birthdate,
             whatsapp, homePhone, workphone, otherPhones = [],
@@ -26,53 +25,83 @@ module.exports = class ProfessionalServices {
         );
 
         try {
-            await professional.save();              
+            await Professional.save( professional );              
             return { message: 'Professional Saved', content: professional };
                      
         } catch (error) {
             return { message: error.message, content: error };
-        }
-    }
+        };
+    };
 
     /**
      * load a Professional by id
      * @param { String } professionalId 
      */
-    load( professionalId ){
+    async load( professionalId ){
         /**ToDo*/
         console.log( 'Load a Professional by Id' );
-    }
+        return {
+                message: 'Loaded successfuly',
+                content: {}
+        };
+    };
 
     /**Load all Professionals from the database
      * @returns { ProfessionalModel[] } a list of professionals
     */
-    loadAll(){
+    async loadAll(){
         /** ToDo */
-        const professionals = [];
-        console.log( 'Load all Professional from the database' );
-        return professionals;
-    }
+        return {
+            message: 'Load All Professionals Successfully',
+            content: ['list', 'of', 'professionals']
+        };
+    };
 
     /**
      * Upadate a Professional data and save into the databa
      * @param { String } professionalId 
-     * @param { ProfessionalModel } professional
+     * @param { Object } data
      * @returns { ProfessionalModel } updated professional
      */
-    update( professionalId, professional ){
+    async update( professionalId, data ){
         /**ToDo */
-        console.log( 'Upadate a Professional data and save into the databa')
-        return;
-    }
+        return {
+            message: "Professional updated successfully.",
+            content: {}
+        };
+    };
 
     /**
      * Delete a Professional from the database
      * @param { String } professionalId
      * @returns { Professional } deleted professional
     */
-    delete( professionalId ){
+    async delete( professionalId ){
         /**ToDo */
-        console.log( 'Delete a Professional from the database' );
-        return;
-    }
-}
+        return {
+            message: 'Professional deleted.',
+            content: {}
+        }; 
+    };
+
+    async loginUser( email, password ){
+        try {
+            return {
+                message: 'User logged in',
+                content: {}
+            };            
+        } catch ( error ) {
+            return {
+                message: error.message,
+                content: error
+            };
+        };
+    };
+
+    async logoutUser(){
+        return {
+            message: 'User logged out',
+            content: {}
+        };
+    };
+};
