@@ -40,7 +40,7 @@ module.exports = class Professional{
         whatsapp, homePhone, workphone, otherPhones = [],
         instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse,
         cep, street, number, complement, district, county, state, country,
-        actuationfield, skills, experienceLevel,
+        actuationFields, skills, experienceLevel,
         portifolioUrl, about, pictureUrl, password )
     {
         this.id = uuid.v1();
@@ -51,7 +51,7 @@ module.exports = class Professional{
         this.phoneList = new PhoneList( homePhone, workphone, whatsapp, ...otherPhones );
         this.socialMedias = new SocialMediaList( instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse )
         this.adress = new Adress( cep, street, number, complement, district, county, state, country );
-        this.actuationfield = actuationfield;
+        this.actuationFields = actuationFields;
         this.skills = skills;
         this.experienceLevel = experienceLevel;
         this.portifolioUrl = portifolioUrl;
@@ -69,11 +69,16 @@ module.exports = class Professional{
         console.log( 'cliente Salvo')
     }
 
-    static async load( id ){
-        console.log( 'Cliente Carregado.')
+    static async loadById( id ){
+        //ToDo
         return {};
     }
-}
+
+    static async loadByEmail( email ){
+        //ToDo
+        return {}
+    };
+};
 
 const  generatePasswordHash = ( password, saltRounds )=>{
     bcrypt.hash( password, saltRounds, ( err, hash )=>{
