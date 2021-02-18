@@ -2,7 +2,7 @@ const { Router } = require( 'express' );
 const controller = require( '../controllers/professional' );
 const { body, validationResult } = require( 'express-validator' );
 const validator = require( '../utils/validator');
-const { professional: profKeys } = require( '../utils/constants' )
+const { professional: profKeys } = require( '../utils/variables' )
 
 const router = Router();
 
