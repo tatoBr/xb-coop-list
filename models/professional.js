@@ -25,10 +25,17 @@ module.exports = class Professional{
      * @param { String } tiktok
      * @param { String } twitter
      * @param { String } linkedin
-     * @param { String } clubhouse
-     * @param { Adress } adress 
-     * @param { Array } actuationfield 
-     * @param { Array } skills 
+     * @param { String } clubhouse     
+     * @param { Number } cep
+     * @param { String } street
+     * @param { Number } number
+     * @param { String } complement
+     * @param { String } district
+     * @param { String } county
+     * @param { String } state
+     * @param { String } country
+     * @param {[String]} actuationFields 
+     * @param {[String]} skills 
      * @param { String } experienceLevel 
      * @param { String } portifolioUrl 
      * @param { String } about 
@@ -57,11 +64,7 @@ module.exports = class Professional{
         this.portifolioUrl = portifolioUrl;
         this.about = about;
         this.picture = pictureUrl;
-        try {
-            this.password = generatePasswordHash( password, saltrounds );            
-        } catch (error) {
-            throw error;
-        }
+        this.password = password;
     }
     
     static async save( professional ){
@@ -80,7 +83,7 @@ module.exports = class Professional{
     };
 };
 
-const  generatePasswordHash = ( password, saltRounds )=>{
+const  generatePasswordHash = async ( password, saltRounds )=>{
     bcrypt.hash( password, saltRounds, ( err, hash )=>{
         if( err ) throw err;
         return hash;

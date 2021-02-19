@@ -11,7 +11,7 @@ module.exports = class ProfessionalServices {
             whatsapp, homePhone, workphone, otherPhones = [],
             instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse,
             cep, street, number, complement, district, county, state, country,
-            actuationfield, skills, experienceLevel,
+            actuationFields, skills, experienceLevel,
             portifolioUrl, about, pictureUrl, password
         } = data;
         
@@ -20,7 +20,7 @@ module.exports = class ProfessionalServices {
             whatsapp, homePhone, workphone, otherPhones = [],
             instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse,
             cep, street, number, complement, district, county, state, country,
-            actuationfield, skills, experienceLevel,
+            actuationFields, skills, experienceLevel,
             portifolioUrl, about, pictureUrl, password      
         );
 

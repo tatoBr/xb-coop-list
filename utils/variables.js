@@ -1,4 +1,5 @@
 module.exports = {
+    locale: 'pt-BR',
     professional : {
         name: 'name',
         email: 'email',
@@ -8,7 +9,7 @@ module.exports = {
         homePhone: 'homePhone',
         workPhone: 'workPhone',
         otherPhones: 'otherPhones',
-        instagram: 'intagram',
+        instagram: 'instagram',
         facebook: 'facebook',
         youtube: 'youtube',
         tiktok: 'tiktok',
