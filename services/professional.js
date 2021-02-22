@@ -1,4 +1,9 @@
 const Professional = require( '../models/professional' );
+const bcrypt = require( 'bcrypt' );
+
+const { generateToken } = require( '../utils/authorization' );
+const { professional: pk, responseMessages: messages } = require( '../utils/variables');
+
 
 module.exports = class ProfessionalServices {
     /**
@@ -7,43 +12,48 @@ module.exports = class ProfessionalServices {
      */
     async save( data ){    
         let {
-            name, email, cpf, birthdate,
-            whatsapp, homePhone, workphone, otherPhones = [],
+            username, email, cpf, birthdate,
+            whatsapp, homePhone, workphone, otherPhones,
             instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse,
-            cep, street, number, complement, district, county, state, country,
+            cep, street, adressNumber, complement, district, county, adressState, country,
             actuationFields, skills, experienceLevel,
-            portifolioUrl, about, pictureUrl, password
+            portifolioUrl, about, pictureUrl, userPassword
         } = data;
         
         let professional = new Professional(
-            name, email, cpf, birthdate,
-            whatsapp, homePhone, workphone, otherPhones = [],
+            username, email, cpf, birthdate,
+            whatsapp, homePhone, workphone, otherPhones,
             instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse,
-            cep, street, number, complement, district, county, state, country,
+            cep, street, adressNumber, complement, district, county, adressState, country,
             actuationFields, skills, experienceLevel,
-            portifolioUrl, about, pictureUrl, password      
+            portifolioUrl, about, pictureUrl, userPassword      
         );
 
-        try {
-            await Professional.save( professional );              
-            return { message: 'Professional Saved', content: professional };
-                     
+        
+        const hash = await bcrypt.hash( professional.userPassword, SALTROUNDS );
+        professional.userPassword = hash;
+
+        try {    
+            let userSaved = await Professional.save( professional );      
+            return { message: messages.USER_SAVED, content: userSaved };
         } catch (error) {
             return { message: error.message, content: error };
         };
     };
 
     /**
-     * load a Professional by id
+     * load a Professional
      * @param { String } professionalId 
      */
-    async load( professionalId ){
-        /**ToDo*/
-        console.log( 'Load a Professional by Id' );
-        return {
-                message: 'Loaded successfuly',
-                content: {}
-        };
+    async load( expression, columns, values ){
+        try {
+            let users = await Professional.load(expression,columns,values);
+            if( !users ) return { code: messages.USER_NOT_FOUND, content: null };            
+            return { code: messages.USER_LOADED, content: users };
+            
+        } catch (error) {
+            return { message: error.message, content: error };
+        }
     };
 
     /**Load all Professionals from the database
@@ -82,26 +92,5 @@ module.exports = class ProfessionalServices {
             message: 'Professional deleted.',
             content: {}
         }; 
-    };
-
-    async loginUser( email, password ){
-        try {
-            return {
-                message: 'User logged in',
-                content: {}
-            };            
-        } catch ( error ) {
-            return {
-                message: error.message,
-                content: error
-            };
-        };
-    };
-
-    async logoutUser(){
-        return {
-            message: 'User logged out',
-            content: {}
-        };
     };
 };
