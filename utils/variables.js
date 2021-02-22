@@ -1,7 +1,8 @@
 module.exports = {
     locale: 'pt-BR',
-    professional : {
-        name: 'name',
+    professional : {        
+        id: 'id',
+        username: 'username',
         email: 'email',
         cpf: 'cpf',
         birthdate: 'birthdate',
@@ -18,11 +19,11 @@ module.exports = {
         clubhouse: 'clubhouse',
         cep: 'cep',
         street: 'street',
-        number: 'number',
+        adressNumber: 'adressNumber',
         complement: 'complement',
         district: 'district',
         county: 'county',
-        state: 'state',
+        adressState: 'adressState',
         coutry: 'country',
         actuationFields: 'actuationFields',
         skills: 'skills',
@@ -30,6 +31,15 @@ module.exports = {
         portifolioUrl: 'portifolioUrl',
         about: 'about',
         pictureUrl: 'pictureUrl',
-        password: 'password'
-    }
+        userPassword: 'userPassword'
+    },
+    responseMessages: {
+        USER_SAVED: 10,
+        USER_LOADED: 11,
+        USER_ALREADY_EXIST: 12,
+        USER_NOT_FOUND: 13,
+        PASSWORD_MISMATCH: 14,
+        USER_AUTHENTICATED: 15,        
+    },
+    privateKey: "2812a7a341e863e76dad78e0ea8be22e",
 }
