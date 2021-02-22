@@ -1,5 +1,7 @@
 const { Router } = require( 'express' );
 const controller = require( '../controllers/professional' );
+const { professionalAuthenticantion: authenticate } = require( '../utils/authentication' );
+const { authorize } = require( '../utils/authorization' );
 const { professional : professionalValidator } = require( '../utils/inputValidator');
 
 const router = Router();
@@ -12,7 +14,7 @@ router.post(
     controller.post );
 
 // GET /professionals/login
-router.get( '/login', controller.login );
+router.get( '/login', authenticate, controller.login );
 
 // GET /professionals/logout
 router.get( '/logout', controller.logout );
@@ -28,7 +30,6 @@ router.patch( '/:id', controller.patch );
 
 //DELETE > /professional/:id
 router.delete( '/:id', controller.delete );
-
 
 
 module.exports = router;
