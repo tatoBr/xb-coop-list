@@ -2,12 +2,30 @@ const { body, validationResult } = require('express-validator');
 const { professional: pk } = require('./variables' )
 
 module.exports = {
-    professional: {
+    login: {
         validationChain: [
-            body( pk.name )
+            body( pk.email )
                 .trim()
                 .exists()
-                .withMessage( `The field "${ pk.name }" is required.` )                                
+                .withMessage( `The field '${ pk.email }' is required.` )
+                .isEmail()
+                .withMessage( `This is not a valid email` ),
+            body( pk.userPassword )
+                .exists()
+                .withMessage( `This field is required.` )                                
+                .trim()            
+                .notEmpty()
+                .isLength({ min: 8 })
+                .withMessage( 'Password must be at least 8 characters long.')
+                .isAlphanumeric()              
+        ]
+    },
+    professional: {
+        validationChain: [
+            body( pk.username )
+                .trim()
+                .exists()
+                .withMessage( `The field "${ pk.username }" is required.` )                                
                 .isAlpha('pt-BR', { ignore: ' .' })
                 .withMessage('name can\'t contain special characters')
                 .isLength({ min: 3, max: 32 })
@@ -56,7 +74,7 @@ module.exports = {
                 .withMessage( `${ pk.cep } can contain numeric characters only` )
                 .isLength( 8 )
                 .withMessage( `${ pk.cep } must be 8 characters long`),
-            body([ pk.street, pk.district, pk.county, pk.state, pk.coutry, pk.experienceLevel ]) 
+            body([ pk.street, pk.district, pk.county, pk.adressState, pk.coutry, pk.experienceLevel ]) 
                 .trim()
                 .exists()
                 .withMessage( `This field is required.` )                                
@@ -66,14 +84,14 @@ module.exports = {
                 .withMessage( `This field can't contain special characters`)
                 .isLength({ min: 1, max: 48 })
                 .withMessage( `This field must have between 1 and 48 characters` ),
-            body( pk.number )
+            body( pk.adressNumber )
                 .trim()
                 .exists()
-                .withMessage( `The field '${ pk.number}' is required.` )
+                .withMessage( `The field '${ pk.adressNumber}' is required.` )
                 .isNumeric()
-                .withMessage( `${ pk.number } can contain numeric characters only` )
+                .withMessage( `${ pk.adressNumber } can contain numeric characters only` )
                 .isLength({ min:0, max: 6 })
-                .withMessage( `${ pk.number } range must be 0-999.999.` ),
+                .withMessage( `${ pk.adressNumber } range must be 0-999.999.` ),
             body([ pk.actuationFields, pk.skills ])
                 .exists()
                 .isArray()
@@ -84,8 +102,8 @@ module.exports = {
                 .isURL()
                 .withMessage( `this field must be a valid URL.`),
             body( pk.about )
-                .exists()
                 .trim()
+                .exists()
                 .withMessage( `This field is required.` )                                
                 .notEmpty()
                 .withMessage( `This field can't be an empty string.` )                                
@@ -93,6 +111,16 @@ module.exports = {
                 .withMessage( `This field can't contain special characters`)
                 .isLength({ min: 1, max: 2000 })
                 .withMessage( `This field must have between 1 and 2000 characters` ),
+            body( pk.userPassword )
+                .exists()
+                .withMessage( `This field is required.` )                                
+                .trim()            
+                .notEmpty()
+                .isLength({ min: 8 })
+                .withMessage( 'Password must be at least 8 characters long.')
+                .isAlphanumeric()
+                .matches( /^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/ )
+                .withMessage( 'password must contain letters and numbers combined')
         ],  
         checkResults: (req, res, next) => {
             const errors = validationResult(req);
