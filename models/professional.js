@@ -1,11 +1,13 @@
 const uuid = require( 'uuid' );
-const bcrypt = require( 'bcrypt' );
+const pool = require('../database/db' );
+const { professional : pk, responseMessages: messages } = require( '../utils/variables' );
+const queryHelpers = require('../utils/queryHelpers' )
+
 const Adress = require("./adress");
 const PhoneList = require( "./phonelist" );
 const SocialMediaList = require( "./socialMediaList" );
 
-
-const saltrounds = 10;
+const THIS_TABLE = 'professionals';
 
 module.exports = class Professional{
     /**
@@ -43,38 +45,81 @@ module.exports = class Professional{
      * @param { String } password 
      */
     constructor( 
-        name, email, cpf, birthdate,
-        whatsapp, homePhone, workphone, otherPhones = [],
+        username, email, cpf, birthdate,
+        whatsapp, homePhone = 0, workphone = 0, otherPhones,
         instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse,
-        cep, street, number, complement, district, county, state, country,
+        cep, street, adressNumber, complement, district, county, adressState, country,
         actuationFields, skills, experienceLevel,
-        portifolioUrl, about, pictureUrl, password )
-    {
+        portifolioUrl, about, pictureUrl, userPassword
+    ){
         this.id = uuid.v1();
-        this.name = name;
+        this.username = username;
         this.email = email;
-        this.cpf = cpf;
+        this.cpf = parseInt(cpf);
         this.birthdate = birthdate;
-        this.phoneList = new PhoneList( homePhone, workphone, whatsapp, ...otherPhones );
+        this.phoneList = new PhoneList(
+            (parseInt(homePhone) || 0),
+            (parseInt(workphone) || 0),
+            (parseInt(whatsapp) || 0),
+            otherPhones
+        );
         this.socialMedias = new SocialMediaList( instagram, facebook, youtube, tiktok, twitter, linkedin, clubhouse )
-        this.adress = new Adress( cep, street, number, complement, district, county, state, country );
+        this.adress = new Adress(
+            cep,
+            street,
+            parseInt(adressNumber),
+            complement,
+            district,
+            county,
+            adressState,
+            country
+        );
         this.actuationFields = actuationFields;
         this.skills = skills;
         this.experienceLevel = experienceLevel;
         this.portifolioUrl = portifolioUrl;
         this.about = about;
-        this.picture = pictureUrl;
-        this.password = password;
+        this.pictureUrl = pictureUrl;
+        this.userPassword = userPassword;
     }
     
+    /**
+     * @param { Professional } professional 
+     */
     static async save( professional ){
-        //ToDo
-        console.log( 'cliente Salvo')
+        try { 
+            const selectQuery = queryHelpers.generateSelectQueryStr(
+                THIS_TABLE,
+                ["email","cpf"],
+                ["email","cpf"],
+                [professional.email, professional.cpf ]
+            );
+            
+            const selectResult = await pool.query( selectQuery );    
+                                
+            if( selectResult.rows.length > 0 )
+                return { message: messages.USER_ALREADY_EXIST, content: selectResult.rows[0] };       
+            
+            const insertQuery = queryHelpers.generateInsertQueryString( THIS_TABLE, professional, Object.keys( pk ));            
+            const insertResult = await pool.query( insertQuery );
+
+            return insertResult.rows[0];
+        } catch (error) {
+            throw error;
+        }
     }
 
-    static async loadById( id ){
-        //ToDo
-        return {};
+    /** 
+     * @param {string[]} expression
+     * @param {string[]} columns
+     * @param {(number|boolean|string|array)[]} values 
+     */
+    static async load( expression, columns, values ){
+        const selectQuery = queryHelpers.generateSelectQueryStr(
+            THIS_TABLE, expression, columns, values            
+        )        
+        const selectResult = await pool.query( selectQuery );        
+        return selectResult.rows?.[0];       
     }
 
     static async loadByEmail( email ){
@@ -82,10 +127,3 @@ module.exports = class Professional{
         return {}
     };
 };
-
-const  generatePasswordHash = async ( password, saltRounds )=>{
-    bcrypt.hash( password, saltRounds, ( err, hash )=>{
-        if( err ) throw err;
-        return hash;
-    });
-}
