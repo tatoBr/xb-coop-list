@@ -1,8 +1,6 @@
 const { Router } = require( 'express' );
 const controller = require( '../controllers/professional' );
-const { professionalAuthenticantion: authenticate } = require( '../utils/authentication' );
 const { professional: authorize } = require( '../utils/authorization' );
-const inputValidator = require('../utils/inputValidator');
 const { professional : professionalValidator } = require( '../utils/inputValidator');
 
 const router = Router();
