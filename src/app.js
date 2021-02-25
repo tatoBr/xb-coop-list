@@ -1,8 +1,6 @@
-var path = require('path');
-var express = require('express');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-const Adress = require('./models/adress')
+const express = require('express');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
 
 const sequelize = require( './database/index');
 
@@ -25,13 +23,6 @@ app.use( '/professionals', professionalRouter );
 
 const PORT = process.env.PORT || 3000
 
-sequelize.authenticate()
-.then( result =>{
-    sequelize.sync({})
-    .then( result =>{
-        app.listen( PORT, console.log( 'Server Listening on port ' + PORT ));
-    })
-    .catch();
-})
-.catch( error => console.error( error ));
+app.listen( PORT, console.log( 'Server Listening on port ' + PORT ));
+   
 
