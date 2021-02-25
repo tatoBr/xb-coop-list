@@ -17,22 +17,11 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
 
 //using Routes
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use( '/professionals', professionalRouter );
-app.post( '/testes', async( req, res )=>{
-     let { cep, street, number, complement, district, county, state, country } = req.body;
-     try {
-         let adress = await Adress.create( cep, street, number, complement, district, county, state, country );
-         res.json({ result: adress})
-         
-     } catch (error) {
-         res.json({error: error.message})
-     }
-});
 
 const PORT = process.env.PORT || 3000
 
