@@ -29,7 +29,7 @@ sequelize.authenticate()
     .then( result =>{
         app.listen( PORT, console.log( 'Server Listening on port ' + PORT ));
     })
-    .catch();
+    .catch(error =>{ throw error });
 })
 .catch( error => console.error( error ));
 
