@@ -6,32 +6,21 @@ const services = new Services();
 
 module.exports = {
     post: async ( req, res ) => {
-        let response = await services.save( req.body );        
-        if( response.error ) return res.status( 500 ).json({ response: error.message });
+        let save = await services.save( req.body );        
         
-        res.status( 201 ).json( response );
-    },
-    
-    login: async( req, res )=>{        
-        try { 
-            let { email, password } = req.body;
-            let authentication = await services.authenticate( email, password );
-            if( authentication.code === responseMessages.USER_AUTHENTICATED )
-                return res.status( 200 ).json( { token: authentication.content });
-
-            res.status(400).send({ code: authentication.code, content: null})
-        } catch (error) {
-            res.status( 500 ).json({ message: error.message, content: error });
+        switch ( save.message ) {
+            case responseMessages.USER_SAVED:
+                res.status( 200 )
+                break;
+            case responseMessages.USER_ALREADY_EXIST:
+                res.status( 400 )
+                break;
+            default:
+                res.status( 500 )
+                break;
         }
-    },
-
-    logout: async ( req, res )=>{
-        try {
-            let response = await services.logoutUser();
-            res.status( 200 ).json( response );            
-        } catch (error) {
-            res.status( 500 ).json({ message: error.message, content: error });
-        }
+        
+        res.json( save );
     },
 
     get: async ( req, res )=>{
