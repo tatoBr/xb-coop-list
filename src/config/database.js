@@ -5,12 +5,12 @@ module.exports = process.env.DATABASE_URL || {
     password: process.env.DATABASE_PASSWORD || 'admin',
     database: process.env.DATABASE || 'xbranding',
     dialect: 'postgres',
-    /*dialectOptions: {
+    dialectOptions: {
         ssl: {
             require: true,
             rejectUnauthorized: false
         }
-    },*/    
+    },    
     define: {
         timestamps: true,        
     }
