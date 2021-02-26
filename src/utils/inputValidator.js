@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { body, validationResult, query } = require('express-validator');
 const { professionalStructure: ps } = require('./variables')
 
 module.exports = {
@@ -160,6 +160,15 @@ module.exports = {
                     .trim()
                     .notEmpty()
                     .isAlphanumeric()
+            ],
+            selectAll: [
+                query(['page', 'limit' ])
+                    .trim()
+                    .exists()
+                    .withMessage('page and limit are required.')
+                    .isNumeric()
+                    .withMessage('page and limit must be numeric values'),
+                
             ]
         },         
     },
