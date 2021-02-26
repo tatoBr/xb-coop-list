@@ -18,7 +18,10 @@ router.get( '/',
 
 router.get( '/:userId', controller.get );
 
-router.patch( '/:id', checkProfessionalPassport, controller.update );
+router.patch( '/:id',
+    validationChains.patch,
+    checkResults,
+    controller.update );
 
 router.delete( '/:id', checkProfessionalPassport, controller.delete );
 
