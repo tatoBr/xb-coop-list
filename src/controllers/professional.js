@@ -31,7 +31,7 @@ module.exports = {
             let loadResult = await services.loadById(userId);
     
             switch ( loadResult.message ) {
-                case responseMessages.USERS_LOADED:
+                case responseMessages.USER_LOADED:
                     res.status(200);
                     break;
     
@@ -76,7 +76,7 @@ module.exports = {
             else paginated = professionals.slice(startIndex, endIndex);
             
             return res.json( paginated );
-                    
+
         } catch (error) {
             return res.status( 500 ).json( error );
         }

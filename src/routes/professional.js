@@ -16,7 +16,7 @@ router.get( '/',
     checkResults,
     controller.getAll );
 
-router.get( '/:id', controller.get );
+router.get( '/:userId', controller.get );
 
 router.patch( '/:id', checkProfessionalPassport, controller.update );
 

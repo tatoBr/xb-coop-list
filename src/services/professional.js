@@ -110,14 +110,25 @@ module.exports = class ProfessionalServices {
                     where:{ userId: userId },
                     include:{
                         association: Professional.User,
-                        include: [ User.Adress, User.Phonelist, User.SocialMediaCatalog ]
-                    }
+                        attributes: [ ps.user.firstname, ps.user.lastname, ps.user.email],
+                        include: [
+                            {
+                                association: User.Adress,
+                                attributes:[ ps.adress.country, ps.adress.state, ps.adress.county ]
+                            },
+                            {
+                                association: User.Phonelist,
+                                attributes:[ ps.phonelist.whatsapp,  ps.phonelist.homephone, ps.phonelist.workphone ]
+                            }
+                        ]
+                    },
+                    attributes: [ps.id, ps.skills, ps.actuationFields ]
                 }                
             );
-            if (!selectResult) return { code: responseMessages.USER_NOT_FOUND, content: null };
-            return { code: responseMessages.USER_LOADED, content: selectResult };
+            if (!selectResult) return { message: responseMessages.USER_NOT_FOUND, content: null };
+            return { message: responseMessages.USER_LOADED, content: selectResult };
         } catch (error) {
-            return {code: error.message, content: error };
+            return {message: error.message, content: error };
         }
     };
     
