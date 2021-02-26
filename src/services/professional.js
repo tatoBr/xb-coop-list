@@ -11,34 +11,6 @@ const { generateToken } = require('../utils/authorization' );
 
 
 module.exports = class ProfessionalServices {
-    async authenticate( email, password ){
-        const selectResult = await User.findOne({
-            where: {
-                [ps.user.email]: email
-            },
-            attributes: [ ps.user.id, ps.user.username, ps.user.password, ps.user.accessLevel ]
-        });
-
-        if( !selectResult ) return { code: responseMessages.USER_NOT_FOUND, content: null };
-                
-        try {
-            let match = await bcrypt.compare( password, selectResult.password );
-            if( !match ) return { code: responseMessages.PASSWORD_MISMATCH, content: null };
-
-            let payload = {
-                [ps.user.id]: selectResult[ps.user.id ],
-                [ps.user.username]: selectResult[ps.user.username],            
-                [ps.user.accessLevel]: selectResult[ps.user.accessLevel]
-            }
-            let token = generateToken( payload );
-
-            return { code: responseMessages.USER_AUTHENTICATED, content: token };
-
-        } catch ( error ) {
-            return { code: error.message, content: error };
-        }
-    }
-
     /**    
      * @param { data } data 
      */
@@ -67,6 +39,8 @@ module.exports = class ProfessionalServices {
                     [ps.user.cpf]: cpf,
                     [ps.user.password]: hash,
                     [ps.user.accessLevel]: al.professional,
+                    [ps.user.loginAttempts]: 0,
+                    [ps.user.loginWaitTime]: new Date(),
                     'adress': {
                         [ps.adress.cep]: cep,
                         [ps.adress.street]: street,
@@ -113,7 +87,7 @@ module.exports = class ProfessionalServices {
             await t.rollback();
             if (error.name === "SequelizeUniqueConstraintError") {
                 return {
-                    code: responseMessages.USER_ALREADY_EXIST, content: error.errors.map(element => {
+                    message: responseMessages.USER_ALREADY_EXIST, content: error.errors.map(element => {
                         return {
                             message: element.message,
                             field: element.path,
@@ -169,13 +143,22 @@ module.exports = class ProfessionalServices {
      * @param { Object } data
      * @returns { ProfessionalModel } updated professional
      */
-    async update(id , data ) {
-        /**ToDo */
-
-        return {
-            message: "Professional updated successfully.",
-            content: {}
-        };
+    async update( id, data ) {
+        try {
+            let selectResult = await Professional.findOne(
+                {
+                    where:{ userId: id },
+                    include:{
+                        association: Professional.User,
+                        include: [ User.Adress, User.Phonelist, User.SocialMediaCatalog ]
+                    }
+                }                
+            );
+            if (!selectResult) return { code: responseMessages.USER_NOT_FOUND, content: null };
+            return { code: responseMessages.USER_LOADED, content: selectResult };
+        } catch (error) {
+            return {code: error.message, content: error };
+        }
     };
 
     /**
