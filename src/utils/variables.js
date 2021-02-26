@@ -11,7 +11,10 @@ module.exports = {
             birthdate: 'birthdate',
             cpf: 'cpf',
             password: 'password',
-            accessLevel: 'accessLevel' 
+            accessLevel: 'accessLevel',
+            refreshToken: 'refreshToken',
+            loginAttempts: 'loginAttempts',
+            loginWaitTime: 'loginWaitTime' 
         },
         adress: {
             cep: 'cep',
@@ -46,13 +49,14 @@ module.exports = {
                
     },
     responseMessages: {
-        USER_SAVED: 10,
-        USER_LOADED: 11,
-        USERS_LOADED: 12,
-        USER_ALREADY_EXIST: 13,
-        USER_NOT_FOUND: 14,
-        PASSWORD_MISMATCH: 15,
-        USER_AUTHENTICATED: 16,        
+        USER_SAVED: 'USER SAVED SUCCESSFULLY',
+        USER_LOADED: 'USER LOADED SUCCESSFULLY',
+        USERS_LOADED: 'USERS LOADED SUCCESSFULLY',
+        USER_ALREADY_EXIST: 'USER ALREADY EXIST IN THE DATABASE',
+        USER_NOT_FOUND: 'USER DON\'T EXIST IN THE DATABASE',
+        PASSWORD_MISMATCH: 'WRONG PASSWORD',
+        USER_AUTHENTICATED: 'USER AUTHENTICATED SUCCESSFULLY.',
+        USER_IN_WAIT_TIME: 'TOO MANY FAILED LOGIN TRIES. WAIT FOR A FEW MINUTES AND TRY AGAIN.'        
     },
     privateKey: "2812a7a341e863e76dad78e0ea8be22e",
     userAccessLevel: {
