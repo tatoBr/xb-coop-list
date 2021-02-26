@@ -43,7 +43,10 @@ const User = connection.define('user', {
     [user.password]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
-    }
+    },
+    [user.refreshToken]: Sequelize.DataTypes.STRING,
+    [user.loginAttempts]: Sequelize.DataTypes.INTEGER,
+    [user.loginWaitTime]: Sequelize.DataTypes.DATE    
 });
 
 User.Adress = User.belongsTo( Adress, { foreignKey: 'userAdress' });

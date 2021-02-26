@@ -1,9 +1,13 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.status( 200 ).json( { message: 'App is up and running'})
-});
+const controller = require( '../controllers/user' );
+const { user: { chains: validationChains }, checkResults } = require( '../utils/inputValidator');
+
+router.get('/login',
+  validationChains.login,
+  checkResults,
+  controller.authenticate
+);
 
 module.exports = router;
