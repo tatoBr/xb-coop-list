@@ -103,37 +103,41 @@ module.exports = class ProfessionalServices {
     /**
      * @param { String } id 
      */
-    async loadById( id ) {
+    async loadById( userId ) {
         try {
-            let selectResult = await Professional.findByPk( id, {
-                include:{
-                    association: Professional.User,
-                    include: [ User.Adress, User.Phonelist, User.SocialMediaCatalog ]
-                }
-            });
+            let selectResult = await Professional.findOne(
+                {
+                    where:{ userId: userId },
+                    include:{
+                        association: Professional.User,
+                        include: [ User.Adress, User.Phonelist, User.SocialMediaCatalog ]
+                    }
+                }                
+            );
             if (!selectResult) return { code: responseMessages.USER_NOT_FOUND, content: null };
             return { code: responseMessages.USER_LOADED, content: selectResult };
         } catch (error) {
             return {code: error.message, content: error };
         }
     };
-
-    /**
-     * @returns { Array } a list of professionals
-    */
+    
     async loadAll() {
         try {
             let selectResult = await Professional.findAll({
                 include:{
                     association: Professional.User,
-                    attributes:[ ps.user.username, ps.user.email ],                    
+                    attributes:[ ps.user.id, ps.user.firstname, ps.user.lastname, ps.user.email ],
+                    include:{
+                        association: User.Phonelist,
+                        attributes:[ ps.phonelist.whatsapp ]
+                    }                    
                 },               
-                attributes: ['id'],
+                attributes: [ps.id, ps.actuationFields, ps.skills ],
             });
-            return { code : responseMessages.USERS_LOADED, content: selectResult };
+            return { message: responseMessages.USERS_LOADED, content: selectResult };
 
         } catch (error) {
-            return { code: error.message, content: error };
+            return { message: error.message, content: null };
         }
     };
 
@@ -143,11 +147,11 @@ module.exports = class ProfessionalServices {
      * @param { Object } data
      * @returns { ProfessionalModel } updated professional
      */
-    async update( id, data ) {
+    async update( userId, data ) {
         try {
             let selectResult = await Professional.findOne(
                 {
-                    where:{ userId: id },
+                    where:{ userId: userId },
                     include:{
                         association: Professional.User,
                         include: [ User.Adress, User.Phonelist, User.SocialMediaCatalog ]
@@ -166,7 +170,7 @@ module.exports = class ProfessionalServices {
      * @param { String } professionalId
      * @returns { Professional } deleted professional
     */
-    async delete(professionalId) {
+    async delete( userId ) {
         /**ToDo */
         return {
             message: 'Professional deleted.',
