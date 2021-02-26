@@ -1,11 +1,7 @@
 const { Router } = require( 'express' );
-const Professional = require( '../models/professional' )
-const User = require( '../models/user' );
 const controller = require( '../controllers/professional' );
-const { professionalStructure : ps } = require('../utils/variables')
 const { checkProfessionalPassport  } = require( '../utils/authorization' );
 const { professional: { chains : validationChains }, checkResults} = require( '../utils/inputValidator');
-const paginate = require( '../utils/paginate' );
 
 const router = Router();
 
