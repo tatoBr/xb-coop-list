@@ -1,6 +1,7 @@
 module.exports = {
     locale: 'pt-BR',
     professionalStructure : {
+        id: 'id',
         user: {
             id: 'id',
             username: 'username',
