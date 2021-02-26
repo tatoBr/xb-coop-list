@@ -2,7 +2,23 @@ const { body, validationResult } = require('express-validator');
 const { professionalStructure: ps } = require('./variables')
 
 module.exports = {
-
+    user: {
+        chains: {
+            login: [
+                body(ps.user.email)
+                    .trim()
+                    .exists()
+                    .withMessage(`The field '${ps.user.email}' is required.`)
+                    .isEmail()
+                    .withMessage(`This is not a valid email`),
+                body(ps.user.password)
+                    .exists()
+                    .withMessage(`This field is required.`)
+                    .trim()
+                    .notEmpty()
+            ]            
+        }
+    },
     professional: {
         chains: {
             insert: [
@@ -24,14 +40,14 @@ module.exports = {
                     .trim()
                     .isBase64()
                     .withMessage('It\'s not a valid base64 encoded string.'),
-                body(ps.user.firstname, ps.user.lastname)
+                body([ ps.user.firstname, ps.user.lastname ])
                     .trim()
                     .exists()
-                    .withMessage(`The fields "${ps.user.firstname}" and "${ps.user.lastname}" are required.`)
+                    .withMessage(`The fields '${ps.user.firstname}' and '${ps.user.lastname}' are required.`)
                     .isAlpha('pt-BR', { ignore: ' .-_' })
-                    .withMessage('name can\'t contain special characters')
+                    .withMessage(`'${ps.user.firstname}' and '${ps.user.lastname}' fields can\'t contain special characters`)
                     .isLength({ min: 3, max: 32 })
-                    .withMessage(`name must have between 3 and 34 characters`),
+                    .withMessage(`'${ps.user.firstname}' and '${ps.user.lastname}' fields must have between 3 and 34 characters`),
                 body(ps.user.birthdate)
                     .trim()
                     .exists()
@@ -145,14 +161,14 @@ module.exports = {
                     .notEmpty()
                     .isAlphanumeric()
             ]
-        },
-        checkResults: (req, res, next) => {
-            const errors = validationResult(req);
-            if (errors.isEmpty()) return next();
-            res.status(400).json({
-                message: 'There are errors in your requisition.',
-                content: errors.array()
-            });
-        } 
-    },       
+        },         
+    },
+    checkResults: (req, res, next) => {
+        const errors = validationResult(req);
+        if (errors.isEmpty()) return next();
+        res.status(400).json({
+            message: 'There are errors in your requisition.',
+            content: errors.array()
+        });
+    }      
 };
