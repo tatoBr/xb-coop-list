@@ -3,6 +3,7 @@ const jwt = require( 'jsonwebtoken' );
 const model = require( '../models/user' );
 const authorization = require( '../utils/authorization' );
 const { professionalStructure : {user : us }, responseMessages } = require( '../utils/variables' );
+const { modelsStructure : { user: modelStructure }} = require( '../utils/variables' )
 
 const LOGIN_WAIT_TIME = 60 * 3 * 1000;
 const MAX_LOGIN_ATTEMPTS = 4;
@@ -72,11 +73,69 @@ module.exports = {
             
         }
         catch( error ){
-            console.error( error );
-            return {
-                message: error.message,
-                content: error
-            }
+            throw error;
         }        
+    },
+
+    /**
+     * 
+     * @param {String} id - user id
+     * @param {String[]} attributes - colunms to be selected 
+     */
+    getById: async ( id, attributes )=>{
+        try {
+            let user =  await model.findByPk( id, { attributes: attributes });
+            if( !user ) return { message: responseMessages.USER_NOT_FOUND, content: null }  
+            return { message: responseMessages.USER_LOADED, content: user }          
+        } catch (error) {
+            throw error;
+        }
+    },
+
+    update: async( id, data )=>{
+        try {            
+            let user = await model.findByPk( id );
+            if( !user ) return { message: responseMessages.USER_NOT_FOUND, content: null };
+            for( let key in modelStructure ){
+                if( data[key] !== undefined ) user[key] = data[key];
+            }
+            await user.save();
+            return { message: responseMessages.USER_UPDATED, content: user };
+        } catch (error) {
+            throw error;
+        }        
+    },
+
+    updateAccessToken: async ( id, oldToken ) => {
+        try {
+            let user =  await model.findByPk(
+                id,
+                {
+                    attributes:[
+                        modelStructure.id,
+                        modelStructure.username,
+                        modelStructure.accessLevel,
+                        modelStructure.refreshToken
+                    ]
+                }
+            );            
+            if( !user ) return { message: responseMessages.USER_NOT_FOUND, content: null }  
+            
+            let payload = {
+                [modelStructure.id]: user[modelStructure.id],
+                [modelStructure.username]: user[modelStructure.username],
+                [modelStructure.accessLevel]: user[modelStructure.accessLevel],            
+            }
+
+            let accessToken = authorization.updateAccessToken(
+                oldToken,
+                user[modelStructure.refreshToken],
+                payload
+            );
+            return { message: responseMessages.ACCESS_TOKEN_GENERATED, content: accessToken }
+
+        } catch ( error ) {
+            throw error;
+        }
     }
 }

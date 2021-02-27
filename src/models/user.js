@@ -29,6 +29,10 @@ const User = connection.define('user', {
         type: Sequelize.DataTypes.BLOB( 'medium' ),
         allowNull: false
     },
+    [user.birthdate]: {
+        type: Sequelize.DataTypes.DATE,
+        allowNull: false
+    },
     [user.firstname]: Sequelize.DataTypes.STRING,
     [user.lastname]: Sequelize.DataTypes.STRING,
     [user.cpf]: {

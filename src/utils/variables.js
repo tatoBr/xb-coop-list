@@ -1,5 +1,22 @@
 module.exports = {
     locale: 'pt-BR',
+    modelsStructure: {
+        user: {
+            id: 'id',
+            username: 'username',
+            email: 'email',
+            picture: 'picture',
+            firstname: 'firstname',
+            lastname: 'lastname',
+            birthdate: 'birthdate',
+            cpf: 'cpf',
+            password: 'password',
+            accessLevel: 'accessLevel',
+            refreshToken: 'refreshToken',
+            loginAttempts: 'loginAttempts',
+            loginWaitTime: 'loginWaitTime' 
+        },
+    },
     professionalStructure : {
         id: 'id',
         user: {
@@ -52,12 +69,16 @@ module.exports = {
     responseMessages: {
         USER_SAVED: 'USER SAVED SUCCESSFULLY',
         USER_LOADED: 'USER LOADED SUCCESSFULLY',
+        USER_UPDATED: 'USER WAS UPDATED SUCCESSFULLY',
         USERS_LOADED: 'USERS LOADED SUCCESSFULLY',
+        USER_LOGGED_OUT: 'USER LOGGED OUT FROM THE SYSTEM',
         USER_ALREADY_EXIST: 'USER ALREADY EXIST IN THE DATABASE',
         USER_NOT_FOUND: 'USER DON\'T EXIST IN THE DATABASE',
         PASSWORD_MISMATCH: 'WRONG PASSWORD',
         USER_AUTHENTICATED: 'USER AUTHENTICATED SUCCESSFULLY.',
-        USER_IN_WAIT_TIME: 'TOO MANY FAILED LOGIN TRIES. WAIT FOR A FEW MINUTES AND TRY AGAIN.'        
+        USER_IN_WAIT_TIME: 'TOO MANY FAILED LOGIN TRIES. WAIT FOR A FEW MINUTES AND TRY AGAIN.',       
+        UNAUTHORIZED: 'YOU DON\'T HAVE PERMISSION TO ACCESS THIS RESOURCE',
+        ACCESS_TOKEN_GENERATED:'SUCCESSFULLY GENERATED AN ACCESS TOKEN'      
     },
     privateKey: "2812a7a341e863e76dad78e0ea8be22e",
     userAccessLevel: {

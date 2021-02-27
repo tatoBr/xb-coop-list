@@ -10,4 +10,7 @@ router.get('/login',
   controller.authenticate
 );
 
+router.get( '/logout/:id', controller.logout );
+router.get('/acesstoken/:id', controller.getAccessToken );
+
 module.exports = router;

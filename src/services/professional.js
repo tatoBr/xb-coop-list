@@ -6,6 +6,7 @@ const User = require('../models/user');
 const Professional = require('../models/professional');
 
 const { userAccessLevel: al, professionalStructure: ps, responseMessages, privateKey } = require('../utils/variables');
+const custonParser = require('../utils/custonParser');
 
 const { generateToken } = require('../utils/authorization' );
 
@@ -26,7 +27,8 @@ module.exports = class ProfessionalServices {
         const t = await connection.transaction()
 
         try {
-            const hash = await bcrypt.hash(password, 10);
+            const hash = await bcrypt.hash(password, 10);            
+            birthdate = custonParser.stringToDate( birthdate );
 
             const professional = await Professional.create({
                 'user': {
@@ -81,7 +83,7 @@ module.exports = class ProfessionalServices {
                 }
             });
             await t.commit()
-            return { code: responseMessages.USER_SAVED, content: professional };
+            return { message: responseMessages.USER_SAVED, content: professional };
 
         } catch (error) {
             await t.rollback();
@@ -96,7 +98,7 @@ module.exports = class ProfessionalServices {
                     })
                 }
             };
-            return { code: error.code, message: error.message };
+            return { message: error.code, message: error.message };
         }
     };
 
@@ -160,6 +162,11 @@ module.exports = class ProfessionalServices {
      */
     async update( userId, data ) {
         try {
+            let professionalFields = [ ps.actuationFields, ps.skills, ps.experienceLevel, ps.about, ps.portifolioUrl ];
+            let userFields = [ ps.user.firstname, ps.user.lastname, ps.user.picture, ps.user.birthdate ];
+            let adressFields = Object.values( ps.adress );
+            let socialFields = Object.values( ps.socialmediaList );
+
             let selectResult = await Professional.findOne(
                 {
                     where:{ userId: userId },
@@ -169,7 +176,30 @@ module.exports = class ProfessionalServices {
                     }
                 }                
             );
-            if (!selectResult) return { code: responseMessages.USER_NOT_FOUND, content: null };
+
+            if (!selectResult)
+                return { code: responseMessages.USER_NOT_FOUND, content: null };
+                
+            for( let field of professionalFields )                
+                if( data[field] )
+                    selectResult[field] = data[field]; 
+            
+            for( let field of userFields )                
+                if( data[field] )
+                    selectResult.user[field] = data[field]; 
+            
+            for( let field of adressFields )
+                if( data[field] )
+                    selectResult.adress[field] = data[field];
+            
+            for( let field of socialFields )
+                if( data[field] )
+                    selectResult.adress[field] = data[field];
+            
+            
+            
+            
+               
             return { code: responseMessages.USER_LOADED, content: selectResult };
         } catch (error) {
             return {code: error.message, content: error };
