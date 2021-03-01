@@ -21,6 +21,7 @@ router.get( '/:userId', controller.get );
 router.patch( '/:id',
     validationChains.patch,
     checkResults,
+    checkProfessionalPassport,
     controller.update );
 
 router.delete( '/:id', checkProfessionalPassport, controller.delete );

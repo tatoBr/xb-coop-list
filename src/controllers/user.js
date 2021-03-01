@@ -38,15 +38,14 @@ module.exports = {
     },
 
     logout: async( req, res )=>{
-        const id = req.params[modelStructure.id];
-        const token = req.header('Authorization')?.split(' ')[1];
+        const id = req.params[modelStructure.id]; 
         try {
             let updateResult = await userServices.update( id, {[modelStructure.refreshToken]:""});
 
             switch ( updateResult.message ) {
                 case responseMessages.USER_UPDATED:
-                    clearAccessToken( token );                    
-                    res.status( 200 ).json({ message: responseMessages.USER_LOGGED_OUT, content: null })
+                    clearAccessToken( id );                    
+                    res.status( 200 ).json({ message: responseMessages.USER_LOGGED_OUT, content: null });
                     break;
                 case responseMessages.USER_NOT_FOUND:
                     res.status( 404 ).json( updateResult );

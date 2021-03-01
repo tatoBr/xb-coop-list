@@ -1,11 +1,19 @@
 const jwt = require( 'jsonwebtoken' );
 const { professionalStructure: ps, userAccessLevel, responseMessages } = require( './variables');
 const { modelsStructure: { user: userStructure }} = require( '../utils/variables' );
+
 const tokenWhiteList = [];
 
 const generateAccessToken = ( payload )=>{
     let accessToken = jwt.sign( payload, process.env.ACCESS_TOKEN_SECRET || 'ACCESS SECRET', { expiresIn : '20m' });
-    tokenWhiteList.push( accessToken );
+    let tokenIndex = tokenWhiteList.findIndex( element => element[userStructure.id] === payload[userStructure.id]);
+    
+    if( tokenIndex < 0 ) tokenWhiteList.push({
+         [userStructure.id]: payload[userStructure.id],
+         token: accessToken
+    });
+    else return tokenWhiteList[tokenIndex].token; 
+
     return accessToken;
 };
 
@@ -31,14 +39,15 @@ const updateAccessToken = ( oldToken, refreshToken, payload )=>{
 const checkProfessionalPassport = ( req, res, next )=>{    
     const id = req.params[ps.user.id];
     const token = req.header('Authorization')?.split(' ')[1];
-    const isOnTheList = tokenWhiteList.includes( token );
-
-    if( !token || !isOnTheList ) return res.status( 401 ).json({ message: responseMessages.UNAUTHORIZED, content: null });    
+    let tokenIndex = tokenWhiteList.findIndex( element => element[userStructure.id] === id);
+    
+    if( tokenIndex < 0 || tokenWhiteList[tokenIndex].token !== token )    
+        return res.status( 401 ).json({ message: responseMessages.UNAUTHORIZED, content: null });
     
     try {
     const decoded = jwt.verify( token, process.env.ACCESS_TOKEN_SECRET || 'ACCESS SECRET' );
 
-    if(( id !== decoded[ps.user.id] ) || ( decoded[ps.user.accessLevel] !== userAccessLevel.professional ))
+    if(( id !== decoded[userStructure.id] ) || ( decoded[userStructure.accessLevel] !== userAccessLevel.professional ))
         return res.status( 401 ).json({ message: responseMessages.UNAUTHORIZED, content: null });    
 
     res.header( 'Authorization', `Basic ${ token }`)
@@ -58,8 +67,8 @@ const checkProfessionalPassport = ( req, res, next )=>{
     }
 };
 
-const clearAccessToken = ( token )=>{
-    let tokenIndex = tokenWhiteList.indexOf( token )
+const clearAccessToken = ( userId )=>{
+    let tokenIndex = tokenWhiteList.findIndex( element => element.id === userId )
     if( tokenIndex < 0 ) throw new Error( 'Invalid Access Token.');
         
     tokenWhiteList.splice( tokenIndex, 1 );
