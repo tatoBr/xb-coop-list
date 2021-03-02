@@ -10,10 +10,10 @@ module.exports = {
         
             switch (save.message) {
                 case responseMessages.USER_SAVED:
-                    res.status(200)
+                    res.status(201)
                     break;
                 case responseMessages.USER_ALREADY_EXIST:
-                    res.status(400)
+                    res.status(409)
                     break;
                 default:
                     res.status(500)
@@ -63,19 +63,21 @@ module.exports = {
             if( loadResult.content === null ) return res.json( loadResult );
     
             let page = parseInt(req.query.page);
-            let itensPerPage = parseInt(req.query.limit);        
+            let limit = parseInt(req.query.limit);
+            if( !page || !limit ) return res.json( loadResult );
+                   
             let professionals = loadResult.content;
             let paginated;
     
-            let startIndex = (page - 1) * itensPerPage;
-            let endIndex = startIndex + itensPerPage;
+            let startIndex = (page - 1) * limit;
+            let endIndex = startIndex + limit;
             let lastIndex = professionals.length - 1;
     
-            if (startIndex > lastIndex || itensPerPage > professionals.length ) paginated = [ ...professionals ]
+            if (startIndex > lastIndex || limit > professionals.length ) paginated = [ ...professionals ]
             else if (endIndex > lastIndex) paginated = professionals.slice( startIndex )
             else paginated = professionals.slice(startIndex, endIndex);
             
-            return res.json( paginated );
+            return res.json( { message: loadResult.message, content: paginated });
 
         } catch (error) {
             return res.status( 500 ).json( error );
@@ -89,8 +91,12 @@ module.exports = {
     },
 
     delete: async (req, res) => {
-        const { id } = req.params;
-        let response = await services.delete(id);
-        res.status(200).json({ response: 'Cliente Deletado' });
+        try {
+            const { id } = req.params;
+            let response = await services.delete( id );       
+            res.status(200).json( response );            
+        } catch (error) {
+            return res.status( 500 ).json( error );
+        }
     }
 }
