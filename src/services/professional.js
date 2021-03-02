@@ -162,12 +162,12 @@ module.exports = class ProfessionalServices {
      */
     async update( userId, data ) {
         try {
-            let professionalFields = [ ps.actuationFields, ps.skills, ps.experienceLevel, ps.about, ps.portifolioUrl ];
-            let userFields = [ ps.user.firstname, ps.user.lastname, ps.user.picture, ps.user.birthdate ];
-            let adressFields = Object.values( ps.adress );
-            let socialFields = Object.values( ps.socialmediaList );
-
-            let selectResult = await Professional.findOne(
+            let profColumns = [ ps.actuationFields, ps.skills, ps.experienceLevel, ps.about, ps.portifolioUrl ];
+            let userColumns = [ ps.user.firstname, ps.user.lastname, ps.user.picture, ps.user.birthdate ];
+            let adressColumns = Object.values( ps.adress );
+            let socialMediaColumns = Object.values( ps.socialmediaList );
+            let updatedColumns = 0;
+            let professional = await Professional.findOne(
                 {
                     where:{ userId: userId },
                     include:{
@@ -177,45 +177,52 @@ module.exports = class ProfessionalServices {
                 }                
             );
 
-            if (!selectResult)
+            if (!professional)
                 return { code: responseMessages.USER_NOT_FOUND, content: null };
                 
-            for( let field of professionalFields )                
-                if( data[field] )
-                    selectResult[field] = data[field]; 
+            for( let column of profColumns )                
+                if( data[column] ){
+                    updatedColumns++;
+                    professional[column] = data[column];
+                } 
             
-            for( let field of userFields )                
-                if( data[field] )
-                    selectResult.user[field] = data[field]; 
+            for( let column of userColumns )                
+                if( data[column] ){
+                    updatedColumns++;
+                    professional.user[column] = data[column]; 
+                }
             
-            for( let field of adressFields )
-                if( data[field] )
-                    selectResult.adress[field] = data[field];
+            for( let column of adressColumns )
+                if( data[column] ){
+                    updatedColumns++;
+                    professional.user.adress[column] = data[column];
+                }
             
-            for( let field of socialFields )
-                if( data[field] )
-                    selectResult.adress[field] = data[field];
+            for( let column of socialMediaColumns )
+                if( data[column] ){
+                    updatedColumns++;
+                    professional.user.socialmediaCatalog[column] = data[column]; 
+                }
             
-            
-            
-            
-               
-            return { code: responseMessages.USER_LOADED, content: selectResult };
+            if( updatedColumns > 0 )
+                await professional.save();
+           
+           return { message: responseMessages.USER_UPDATED, content: professional };
         } catch (error) {
-            return {code: error.message, content: error };
+            return {message: error.message, content: error };
         }
     };
 
-    /**
-     * Delete a Professional from the database
-     * @param { String } professionalId
-     * @returns { Professional } deleted professional
+    /** 
+     * @param { String } userId
     */
     async delete( userId ) {
-        /**ToDo */
-        return {
-            message: 'Professional deleted.',
-            content: {}
-        };
+        try {
+            let professional = await Professional.findOne({ where:{ userId: userId }});
+            await professional.destroy();
+            return { message: responseMessages.USER_DELETED, content: null };
+        } catch (error) {
+            return { message: error.message, content: error };
+        }
     };
 };
