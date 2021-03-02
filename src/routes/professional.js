@@ -24,7 +24,11 @@ router.patch( '/:id',
     checkProfessionalPassport,
     controller.update );
 
-router.delete( '/:id', checkProfessionalPassport, controller.delete );
+router.delete(
+    '/:id',
+    checkProfessionalPassport,
+    controller.delete
+);
 router.post( '/protected/:id', checkProfessionalPassport, ( req, res ) => res.send({message: 'this is a protected route'}))
 
 module.exports = router;

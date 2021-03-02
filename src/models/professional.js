@@ -17,9 +17,14 @@ const Professional = connection.define('professional', {
     [ps.skills]: Sequelize.DataTypes.ARRAY( Sequelize.DataTypes.STRING ),
     [ps.experienceLevel]: Sequelize.DataTypes.STRING,
     [ps.portifolioUrl]: Sequelize.DataTypes.STRING,
-    [ps.about]: Sequelize.DataTypes.STRING
+    [ps.about]: Sequelize.DataTypes.STRING,
+    [ps.status]: {
+        type: Sequelize.DataTypes.STRING,
+        defaultValue: 'IN ANALYSIS',
+        allowNull: false
+    }
 });
 
-Professional.User = Professional.belongsTo( User );
+Professional.User = Professional.belongsTo( User, { foreignKey: 'userId', onDelete: 'cascade', hooks: true });
 
 module.exports = Professional;

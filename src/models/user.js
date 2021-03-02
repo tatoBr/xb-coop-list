@@ -53,8 +53,8 @@ const User = connection.define('user', {
     [user.loginWaitTime]: Sequelize.DataTypes.DATE    
 });
 
-User.Adress = User.belongsTo( Adress, { foreignKey: 'userAdress' });
-User.Phonelist = User.belongsTo( Phonelist, { foreignKey: 'userPhones' });
-User.SocialMediaCatalog = User.belongsTo( SocialMediaCatalog, { foreignKey: 'userSocialmedias' });
+User.Adress = User.belongsTo( Adress, { foreignKey: 'userAdress', onDelete: 'cascade', hooks: true });
+User.Phonelist = User.belongsTo( Phonelist, { foreignKey: 'userPhones', onDelete: 'cascade', hooks: true });
+User.SocialMediaCatalog = User.belongsTo( SocialMediaCatalog, { foreignKey: 'userSocialmedias', onDelete: 'cascade', hooks: true });
 
 module.exports = User;
