@@ -60,7 +60,7 @@ module.exports = {
                     .exists()
                     .withMessage(`The field '${ps.user.cpf}' is required.`)
                     .isNumeric()
-                    .withMessage('Cep field can only contain numbers.')
+                    .withMessage('cpf field can only contain numbers.')
                     .isLength(9)
                     .withMessage('cpf must be nine characters long.'),
                 body(ps.user.password)
@@ -78,9 +78,9 @@ module.exports = {
                     .exists()
                     .withMessage(`The field '${ps.adress.cep}' is required.`)
                     .isNumeric()
-                    .withMessage(`${ps.adress.cep} must contain numeric characters only`)
+                    .withMessage('Cep field can only contain numbers.')
                     .isLength(8)
-                    .withMessage(`${ps.adress.cep} must be 8 characters long`),
+                    .withMessage('cep must be eight characters long.'),
                 body([ps.adress.street, ps.adress.district, ps.adress.county, ps.adress.state, ps.adress.country])
                     .trim()
                     .exists()
@@ -191,8 +191,8 @@ module.exports = {
                     .optional({ checkFalsy: true, nullable: true })
                     .isNumeric()
                     .withMessage('Cep field can only contain numbers.')
-                    .isLength(9)
-                    .withMessage('cep must be nine characters long.'),
+                    .isLength(8)
+                    .withMessage('cep must be eight characters long.'),
                 body([ps.adress.street, ps.adress.complement, ps.adress.district, ps.adress.county, ps.adress.state, ps.adress.country])
                     .trim()
                     .optional({ checkFalsy: true, nullable: true })
@@ -242,11 +242,9 @@ module.exports = {
             selectAll: [
                 query(['page', 'limit' ])
                     .trim()
-                    .exists()
-                    .withMessage('page and limit are required.')
+                    .optional({ checkFalsy: true, nullable: true })                    
                     .isNumeric()
-                    .withMessage('page and limit must be numeric values'),
-                
+                    .withMessage('page and limit must be numeric values'),                
             ]
         },         
     },
