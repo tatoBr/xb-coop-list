@@ -50,7 +50,7 @@ const checkProfessionalPassport = ( req, res, next )=>{
     if(( id !== decoded[userStructure.id] ) || ( decoded[userStructure.accessLevel] !== userAccessLevel.professional ))
         return res.status( 401 ).json({ message: responseMessages.UNAUTHORIZED, content: null });    
 
-    res.header( 'Authorization', `Basic ${ token }`)
+    //res.header( 'Authorization', `Bearer ${ token }`)
     res.user = {
         [userStructure.id]: decoded[userStructure.id],
         [userStructure.username]: decoded[userStructure.username],
