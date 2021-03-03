@@ -1,15 +1,15 @@
 const jwt = require( 'jsonwebtoken' );
-const { professionalStructure: ps, userAccessLevel, responseMessages } = require( './variables');
-const { modelsStructure: { user: userStructure }} = require( '../utils/variables' );
+const { professionalStructure: ps, userAccessLevel, responseMessages: rmsg } = require( './variables');
+const { modelsStructure: { user: userDBcols }} = require( '../utils/variables' );
 
 const tokenWhiteList = [];
 
 const generateAccessToken = ( payload )=>{
     let accessToken = jwt.sign( payload, process.env.ACCESS_TOKEN_SECRET || 'ACCESS SECRET', { expiresIn : '20m' });
-    let tokenIndex = tokenWhiteList.findIndex( element => element[userStructure.id] === payload[userStructure.id]);
+    let tokenIndex = tokenWhiteList.findIndex( element => element[userDBcols.id] === payload[userDBcols.id]);
     
     if( tokenIndex < 0 ) tokenWhiteList.push({
-         [userStructure.id]: payload[userStructure.id],
+         [userDBcols.id]: payload[userDBcols.id],
          token: accessToken
     });
     else return tokenWhiteList[tokenIndex].token; 
@@ -26,7 +26,7 @@ const updateAccessToken = ( oldToken, refreshToken, payload )=>{
         clearAccessToken( oldToken );      
         const decoded = jwt.verify( refreshToken, process.env.REFRESH_TOKEN_SECRET || 'REFRESH SECRET' );
 
-        if( decoded[userStructure.id] !== payload[userStructure.id] || decoded[userStructure.accessLevel] !== payload[userStructure.accessLevel])
+        if( decoded[userDBcols.id] !== payload[userDBcols.id] || decoded[userDBcols.accessLevel] !== payload[userDBcols.accessLevel])
             throw new Error( 'invalid refresh token!');
         
         let accessToken = generateAccessToken( payload );        
@@ -35,26 +35,24 @@ const updateAccessToken = ( oldToken, refreshToken, payload )=>{
         throw error;
     }
 }
-
-const checkProfessionalPassport = ( req, res, next )=>{    
-    const id = req.params[ps.user.id];
+const checkAdminPassport = ( req, res, next )=>{
+    const id = req.params[userDBcols.id];
     const token = req.header('Authorization')?.split(' ')[1];
-    let tokenIndex = tokenWhiteList.findIndex( element => element[userStructure.id] === id);
+    let tokenIndex = tokenWhiteList.findIndex( element => element[userDBcols.id] === id);
     
     if( tokenIndex < 0 || tokenWhiteList[tokenIndex].token !== token )    
-        return res.status( 401 ).json({ message: responseMessages.UNAUTHORIZED, content: null });
+        return res.status( 401 ).json({ message: rmsg.UNAUTHORIZED, content: null });
     
     try {
     const decoded = jwt.verify( token, process.env.ACCESS_TOKEN_SECRET || 'ACCESS SECRET' );
 
-    if(( id !== decoded[userStructure.id] ) || ( decoded[userStructure.accessLevel] !== userAccessLevel.professional ))
-        return res.status( 401 ).json({ message: responseMessages.UNAUTHORIZED, content: null });    
-
-    //res.header( 'Authorization', `Bearer ${ token }`)
+    if(( id !== decoded[userDBcols.id] ) || ( decoded[userDBcols.accessLevel] !== userAccessLevel.admin ))
+        return res.status( 401 ).json({ message: rmsg.UNAUTHORIZED, content: null });
+    
     res.user = {
-        [userStructure.id]: decoded[userStructure.id],
-        [userStructure.username]: decoded[userStructure.username],
-        [userStructure.accessLevel]: decoded[userStructure.accessLevel]
+        [userDBcols.id]: decoded[userDBcols.id],
+        [userDBcols.username]: decoded[userDBcols.username],
+        [userDBcols.accessLevel]: decoded[userDBcols.accessLevel]
     }
     return next();
 
@@ -63,7 +61,37 @@ const checkProfessionalPassport = ( req, res, next )=>{
         if( error.name === 'TokenExpiredError' ){
             return res.redirect(`/users/acesstoken/${ id }?originalUrl=${ req.originalUrl }&method=${ req.method }&expiredToken=${token}`)
         }
-        return res.status( 401 ).json({ message: responseMessages.UNAUTHORIZED, content: error });
+        return res.status( 401 ).json({ message: rmsg.UNAUTHORIZED, content: error });
+    }
+}
+const checkProfessionalPassport = ( req, res, next )=>{    
+    const id = req.params[ps.user.id];
+    const token = req.header('Authorization')?.split(' ')[1];
+    let tokenIndex = tokenWhiteList.findIndex( element => element[userDBcols.id] === id);
+    
+    if( tokenIndex < 0 || tokenWhiteList[tokenIndex].token !== token )    
+        return res.status( 401 ).json({ message: rmsg.UNAUTHORIZED, content: null });
+    
+    try {
+    const decoded = jwt.verify( token, process.env.ACCESS_TOKEN_SECRET || 'ACCESS SECRET' );
+
+    if(( id !== decoded[userDBcols.id] ) || ( decoded[userDBcols.accessLevel] !== userAccessLevel.professional ))
+        return res.status( 401 ).json({ message: rmsg.UNAUTHORIZED, content: null });    
+
+    //res.header( 'Authorization', `Bearer ${ token }`)
+    res.user = {
+        [userDBcols.id]: decoded[userDBcols.id],
+        [userDBcols.username]: decoded[userDBcols.username],
+        [userDBcols.accessLevel]: decoded[userDBcols.accessLevel]
+    }
+    return next();
+
+    } catch ( error ) {
+        console.log( req.path );
+        if( error.name === 'TokenExpiredError' ){
+            return res.redirect(`/users/acesstoken/${ id }?originalUrl=${ req.originalUrl }&method=${ req.method }&expiredToken=${token}`)
+        }
+        return res.status( 401 ).json({ message: rmsg.UNAUTHORIZED, content: error });
     }
 };
 
@@ -81,5 +109,6 @@ module.exports = {
     updateAccessToken,
     clearAccessToken,
     generateRefreshToken,   
-    checkProfessionalPassport
+    checkProfessionalPassport,
+    checkAdminPassport
 }
