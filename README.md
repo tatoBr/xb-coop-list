@@ -4,7 +4,7 @@ _This API allows you to catalog, view and manage collaborators_
 ## ENDPOINTS
 
 ### Submit an Administrator
-_>> POST  /admins_
+_>> POST  /admins/:id_
 >Allows you to submit a new administrator account. Requires authentication: _only administrators and owners can add new admins_
 
 The request body needs to be in JSON format and include the following properties:
