@@ -8,6 +8,7 @@ const sequelize = require( './database/index');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 const professionalRouter = require( './routes/professional' );
+const adminRouter = require( './routes/admin' );
 
 var app = express();
 
@@ -20,6 +21,7 @@ app.use(cookieParser());
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use( '/professionals', professionalRouter );
+app.use( '/admins', adminRouter)
 
 const PORT = process.env.PORT || 3000
 
