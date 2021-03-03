@@ -5,18 +5,80 @@ const { professionalStructure: ps } = require('./variables')
 module.exports = {
     user: {
         chains: {
-            login: [
+            authentication: [
                 body(ps.user.email)
-                    .trim()
+                    .trim()                    
                     .exists()
                     .withMessage(`The field '${ps.user.email}' is required.`)
-                    .isEmail()
-                    .withMessage(`This is not a valid email`),
+                    .isEmail()                
+                    .withMessage(`This is not a valid email`)
+                    .normalizeEmail({ all_lowercase: true }),
                 body(ps.user.password)
                     .exists()
                     .withMessage(`This field is required.`)
                     .trim()
                     .notEmpty()
+            ],
+            insert: [
+                body(ps.user.username)
+                    .trim()
+                    .exists()
+                    .withMessage(`The field "${ps.user.username}" is required.`)                    
+                    .isAlpha('pt-BR', { ignore: '.-_0123456789' })
+                    .withMessage('name can\'t contain special characters')                    
+                    .isLength({ min: 3, max: 32 })
+                    .withMessage(`name must have between 3 and 34 characters`)
+                    .bail(),
+                body(ps.user.email)
+                    .trim()                    
+                    .exists()
+                    .withMessage(`The field '${ps.user.email}' is required.`)                    
+                    .isEmail()                    
+                    .withMessage(`This is not a valid email`)
+                    .normalizeEmail({ all_lowercase: true })
+                    .bail(),
+                body(ps.user.picture)
+                    .trim()
+                    .optional({ checkFalsy: true, nullable: true })
+                    .isBase64()
+                    .withMessage('It\'s not a valid base64 encoded string.')
+                    .bail(),
+                body([ ps.user.firstname, ps.user.lastname ])
+                    .trim()
+                    .exists()
+                    .withMessage(`The fields '${ps.user.firstname}' and '${ps.user.lastname}' are required.`)
+                    .isAlpha('pt-BR', { ignore: ' .-_' })
+                    .withMessage(`'${ps.user.firstname}' and '${ps.user.lastname}' fields can\'t contain special characters`)
+                    .isLength({ min: 3, max: 32 })
+                    .withMessage(`'${ps.user.firstname}' and '${ps.user.lastname}' fields must have between 3 and 34 characters`)
+                    .bail(),
+                body(ps.user.birthdate)
+                    .trim()
+                    .exists()
+                    .withMessage(`The field '${ps.user.birthdate}' is required.`)
+                    .isISO8601()
+                    .withMessage(`This is not a valid date format`)
+                    .bail(),
+                body(ps.user.cpf)
+                    .trim()
+                    .exists()
+                    .withMessage(`The field '${ps.user.cpf}' is required.`)
+                    .isNumeric()
+                    .withMessage('cpf field can only contain numbers.')
+                    .isLength(9)
+                    .withMessage('cpf must be nine characters long.')
+                    .bail(),
+                body(ps.user.password)
+                    .exists()
+                    .withMessage(`This field is required.`)
+                    .trim()
+                    .notEmpty()
+                    .isLength({ min: 8 })
+                    .withMessage('Password must be at least 8 characters long.')
+                    .isAlphanumeric()
+                    .matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/)
+                    .withMessage('password must contain letters and numbers combined')
+                    .bail()
             ]            
         }
     },
