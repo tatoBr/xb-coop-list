@@ -5,7 +5,7 @@ const controller = require( '../controllers/user' );
 const { user: { chains: validationChains }, checkResults } = require( '../utils/inputValidator');
 
 router.get('/login',
-  validationChains.login,
+  validationChains.authentication,
   checkResults,
   controller.authenticate
 );
