@@ -30,7 +30,7 @@ const User = connection.define('user', {
         allowNull: false
     },
     [user.birthdate]: {
-        type: Sequelize.DataTypes.DATE,
+        type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
     [user.firstname]: Sequelize.DataTypes.STRING,
