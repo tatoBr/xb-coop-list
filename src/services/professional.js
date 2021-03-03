@@ -10,7 +10,6 @@ const custonParser = require('../utils/custonParser');
 
 const { generateToken } = require('../utils/authorization' );
 
-
 module.exports = class ProfessionalServices {
     /**    
      * @param { data } data 
@@ -27,9 +26,8 @@ module.exports = class ProfessionalServices {
         const t = await connection.transaction()
 
         try {
-            const hash = await bcrypt.hash(password, 10);            
-            birthdate = custonParser.stringToDate( birthdate );
-
+            const hash = await bcrypt.hash(password, 10);
+            
             const professional = await Professional.create({
                 'user': {
                     [ps.user.username]: username,

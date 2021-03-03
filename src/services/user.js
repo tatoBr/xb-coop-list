@@ -63,12 +63,13 @@ module.exports = {
             await user.save();
             
             let accessToken = authorization.generateAccessToken( payload );
+            let content = {
+                userId: user[us.id],
+                accessToken
+            }
             return {
                 message: responseMessages.USER_AUTHENTICATED,
-                content:{
-                    userId: user[us.id],
-                    accessToken
-                }
+                content
             };
             
         }
