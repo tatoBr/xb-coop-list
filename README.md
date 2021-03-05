@@ -29,8 +29,7 @@ The request body must be empty.
 
 _Example:_
 ```
-PATCH /users/logout/c45aecf0-7b77-11eb-a237-8b4f7a7ff39e
-Authorization: Bearer <YOUR TOKEN>
+PATCH /users/logout/
 ```
 _The response body will contain a message._<br><br>
 ### Submit an Administrator
