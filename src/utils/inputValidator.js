@@ -145,8 +145,8 @@ module.exports = {
                     .trim()
                     .exists()
                     .withMessage(`The field '${ps.user.birthdate}' is required.`)
-                    .isDate({ format: `DD/MM/YYYY` })
-                    .withMessage(`This is not a valid date format`),
+                    .isISO8601({ format: `DD/MM/YYYY` })
+                    .withMessage(`This is not a valid ISO8601 String format`),
                 body(ps.user.cpf)
                     .trim()
                     .exists()
@@ -237,7 +237,7 @@ module.exports = {
                     .withMessage(`This field is required.`)
                     .notEmpty()
                     .withMessage(`This field can't be an empty string.`)
-                    .isAlpha('pt-BR', { ignore: ` -ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` })
+                    .isAlpha('pt-BR', { ignore: ` -ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789/` })
                     .withMessage(`This field can't contain special characters`)
                     .isLength({ min: 1, max: 2000 })
                     .withMessage(`This field must have between 1 and 2000 characters`),
