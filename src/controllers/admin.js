@@ -137,7 +137,7 @@ module.exports = {
             let professional = await profServices.update(profId, req.body );        
             switch (professional.message ) {
                 case rmsgs.USER_NOT_FOUND:
-                    res.status( 400 )                
+                    res.status( 404 )                
                     break;
     
                 case rmsgs.USER_UPDATED:

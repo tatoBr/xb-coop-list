@@ -35,7 +35,8 @@ Authorization: Bearer <YOUR TOKEN>
 _The response body will contain a message._<br><br>
 ### Submit an Administrator
 _>> POST  /admins/:id_
->Allows you to submit a new administrator account. Requires authentication: _only administrators and owners can add new admins_
+>Allows you to submit a new administrator account. Requires authentication:\
+>_only administrators and owners can add new admins_
 
 The request body needs to be in JSON format and include the following properties:
 - `username` - **String** - Required;
