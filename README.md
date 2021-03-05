@@ -24,7 +24,9 @@ _The response body will contain a message and the access token._<br><br>
 ### Logout user
 _>>PATCH /users/logout/:id_
 >Logout user and destroy its access token.
+
 The request body must be empty.
+
 _Example:_
 ```
 PATCH /users/logout/c45aecf0-7b77-11eb-a237-8b4f7a7ff39e
