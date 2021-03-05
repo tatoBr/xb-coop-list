@@ -38,7 +38,7 @@ module.exports = {
     },
 
     logout: async( req, res )=>{
-        const id = req.params[modelStructure.id]; 
+        const { id } = req.params; 
         try {
             let updateResult = await userServices.update( id, {[modelStructure.refreshToken]:""});
 
