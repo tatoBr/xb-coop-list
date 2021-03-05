@@ -16,12 +16,14 @@ router.get( '/',
     checkResults,
     controller.getAll );
 
-router.get( '/:userId', controller.get );
+router.get( '/:id',
+    checkProfessionalPassport,
+    controller.get );
 
 router.patch( '/:id',
+    checkProfessionalPassport,
     validationChains.patch,
     checkResults,
-    checkProfessionalPassport,
     controller.update );
 
 router.delete(
