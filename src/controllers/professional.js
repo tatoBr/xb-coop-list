@@ -1,5 +1,7 @@
 const Services = require('../services/professional');
+const { modelsStructure } = require('../utils/variables')
 const { responseMessages: messages, responseMessages } = require('../utils/variables');
+const { clearAccessToken } = require('../utils/authorization')
 
 const services = new Services();
 
@@ -27,8 +29,8 @@ module.exports = {
 
     get: async (req, res) => {
         try {
-            let { userId } = req.params;
-            let loadResult = await services.loadById(userId);
+            let { id } = req.params;
+            let loadResult = await services.loadById( id );
     
             switch ( loadResult.message ) {
                 case responseMessages.USER_LOADED:
@@ -47,8 +49,17 @@ module.exports = {
     },
 
     getAll: async (req, res) => {
-        try {            
-            let loadResult = await services.loadAll();
+        try {  
+            let attributes = [
+                modelsStructure.user.firstname,
+                modelsStructure.user.lastname,
+                modelsStructure.user.email,
+                modelsStructure.phonelist.whatsapp,
+                modelsStructure.professional.actuationFields,
+                modelsStructure.professional.skills,
+                modelsStructure.professional.experienceLevel
+            ]          
+            let loadResult = await services.loadAll(attributes);
 
             switch (loadResult.message) {
                 case responseMessages.USERS_LOADED:
@@ -93,8 +104,20 @@ module.exports = {
     delete: async (req, res) => {
         try {
             const { id } = req.params;
-            let response = await services.delete( id );       
-            res.status(200).json( response );            
+            let response = await services.delete( id );
+            switch (response.message) {
+                case responseMessages.USER_DELETED:
+                    clearAccessToken( id );
+                    res.status( 204 );                    
+                    break;
+                case responseMessages.USER_NOT_FOUND:
+                    res.status( 400 );                    
+                    break;
+            
+                default:
+                    break;
+            }       
+            res.json( response );            
         } catch (error) {
             return res.status( 500 ).json( error );
         }
