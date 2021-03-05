@@ -6,15 +6,16 @@ const User = require('../models/user');
 const Professional = require('../models/professional');
 
 const { userAccessLevel: al, professionalStructure: ps, responseMessages, privateKey } = require('../utils/variables');
-const custonParser = require('../utils/custonParser');
+const { modelsStructure } = require('../utils/variables');
+const { user } = require('../utils/inputValidator');
 
-const { generateToken } = require('../utils/authorization' );
+
 
 module.exports = class ProfessionalServices {
     /**    
      * @param { data } data 
      */
-    async save( data ) {
+    async save(data) {
         let {
             username, email, picture, firstname, lastname, birthdate, cpf, password,
             cep, street, number, complement, district, county, state, country,
@@ -27,7 +28,7 @@ module.exports = class ProfessionalServices {
 
         try {
             const hash = await bcrypt.hash(password, 10);
-            
+
             const professional = await Professional.create({
                 'user': {
                     [ps.user.username]: username,
@@ -73,13 +74,13 @@ module.exports = class ProfessionalServices {
                 [ps.portifolioUrl]: portifolioUrl,
                 [ps.about]: about
             },
-            {
-                transaction: t,
-                include: {
-                    association: Professional.User,
-                    include: [User.Adress, User.Phonelist, User.SocialMediaCatalog]
-                }
-            });
+                {
+                    transaction: t,
+                    include: {
+                        association: Professional.User,
+                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog]
+                    }
+                });
             await t.commit()
             return { message: responseMessages.USER_SAVED, content: professional };
 
@@ -103,120 +104,126 @@ module.exports = class ProfessionalServices {
     /**
      * @param { String } id 
      */
-    async loadById( userId ) {
+    async loadById(id, attributes = undefined) {
         try {
-            let selectResult = await Professional.findOne(
-                {
-                    where:{ userId: userId },
-                    include:{
-                        association: Professional.User,
-                        attributes: [ ps.user.firstname, ps.user.lastname, ps.user.email],
-                        include: [
-                            {
-                                association: User.Adress,
-                                attributes:[ ps.adress.country, ps.adress.state, ps.adress.county ]
-                            },
-                            {
-                                association: User.Phonelist,
-                                attributes:[ ps.phonelist.whatsapp,  ps.phonelist.homephone, ps.phonelist.workphone ]
-                            }
-                        ]
-                    },
-                    attributes: [ps.id, ps.skills, ps.actuationFields ]
-                }                
-            );
-            if (!selectResult) return { message: responseMessages.USER_NOT_FOUND, content: null };
+            let queryOptions = generateSelectQuery(attributes);
+            let selectResult = await Professional.findByPk(id, queryOptions);
+
+            if (!selectResult) {
+                queryOptions.where = { userId: id }
+                selectResult = await Professional.findOne(queryOptions);
+                if (!selectResult) return { message: responseMessages.USER_NOT_FOUND, content: null };
+            }
+
             return { message: responseMessages.USER_LOADED, content: selectResult };
         } catch (error) {
-            return {message: error.message, content: error };
+            return { message: error.message, content: error };
         }
     };
-    
-    async loadAll() {
-        try {
-            let selectResult = await Professional.findAll({
-                include:{
-                    association: Professional.User,
-                    attributes:[ ps.user.id, ps.user.firstname, ps.user.lastname, ps.user.email ],
-                    include:{
-                        association: User.Phonelist,
-                        attributes:[ ps.phonelist.whatsapp ]
-                    }                    
-                },               
-                attributes: [ps.id, ps.actuationFields, ps.skills ],
-            });
-            return { message: responseMessages.USERS_LOADED, content: selectResult };
 
+    async loadAll(attributes) {
+        try {
+            let selectResult = await Professional.findAll(generateSelectQuery(attributes));
+
+            if (selectResult.length > 0) return { message: responseMessages.USERS_LOADED, content: selectResult };
+            return { message: responseMessages.NO_USER_TO_LOAD, content: selectResult };
         } catch (error) {
             return { message: error.message, content: null };
         }
     };
 
-    /**
-     * Upadate a Professional data and save into the databa
-     * @param { String } professionalId 
-     * @param { Object } data
-     * @returns { ProfessionalModel } updated professional
-     */
-    async update( userId, data ) {
+    async update(id, data) {
         try {
-            let profColumns = [ ps.actuationFields, ps.skills, ps.experienceLevel, ps.about, ps.portifolioUrl ];
-            let userColumns = [ ps.user.firstname, ps.user.lastname, ps.user.picture, ps.user.birthdate ];
-            let adressColumns = Object.values( ps.adress );
-            let socialMediaColumns = Object.values( ps.socialmediaList );
+            let profColumns = [
+                modelsStructure.professional.actuationFields,
+                modelsStructure.professional.skills,
+                modelsStructure.professional.experienceLevel,
+                modelsStructure.professional.portifolioUrl
+            ];
+            let userColumns = [
+                modelsStructure.user.firstname,
+                modelsStructure.user.lastname,
+                modelsStructure.user.picture,
+                modelsStructure.user.birthdate
+            ];
+            let adressColumns = Object.values(modelsStructure.adress);
+            let socialMediaColumns = Object.values(modelsStructure.socialmediaList);
             let updatedColumns = 0;
-            let professional = await Professional.findOne(
-                {
-                    where:{ userId: userId },
-                    include:{
-                        association: Professional.User,
-                        include: [ User.Adress, User.Phonelist, User.SocialMediaCatalog ]
-                    }
-                }                
-            );
 
-            if (!professional)
-                return { code: responseMessages.USER_NOT_FOUND, content: null };
-                
-            for( let column of profColumns )                
-                if( data[column] ){
+            let professional = await Professional.findByPk(id, {
+                attributes: [modelsStructure.professional.id],
+                include: {
+                    association: Professional.User,
+                    include: [User.Adress, User.Phonelist, User.SocialMediaCatalog],
+                    attributes: [modelsStructure.user.username, modelsStructure.user.email]
+                }
+            });
+
+            if (!professional) {
+                professional = await Professional.findOne({
+                    where: { userId: id },
+                    attributes: [modelsStructure.professional.id],
+                    include: {
+                        association: Professional.User,
+                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog],
+                        attributes: [modelsStructure.user.username, modelsStructure.user.email]
+                    }
+                });
+                if (!professional) return { message: responseMessages.USER_NOT_FOUND, content: null };
+            }
+
+            for (let column of profColumns)
+                if (data[column]) {
                     updatedColumns++;
                     professional[column] = data[column];
-                } 
-            
-            for( let column of userColumns )                
-                if( data[column] ){
-                    updatedColumns++;
-                    professional.user[column] = data[column]; 
                 }
-            
-            for( let column of adressColumns )
-                if( data[column] ){
+
+            for (let column of userColumns)
+                if (data[column]) {
+                    updatedColumns++;
+                    professional.user[column] = data[column];
+                }
+
+            for (let column of adressColumns)
+                if (data[column]) {
                     updatedColumns++;
                     professional.user.adress[column] = data[column];
                 }
-            
-            for( let column of socialMediaColumns )
-                if( data[column] ){
+
+            for (let column of socialMediaColumns)
+                if (data[column]) {
                     updatedColumns++;
-                    professional.user.socialmediaCatalog[column] = data[column]; 
+                    professional.user.socialmediaCatalog[column] = data[column];
                 }
-            
-            if( updatedColumns > 0 )
+
+            if (updatedColumns > 0)
                 await professional.save();
-           
-           return { message: responseMessages.USER_UPDATED, content: professional };
+
+            return { message: responseMessages.USER_UPDATED, content: professional };
         } catch (error) {
-            return {message: error.message, content: error };
+            return { message: error.message, content: error };
         }
     };
 
-    /** 
-     * @param { String } userId
-    */
-    async delete( userId ) {
+    async delete(id) {
         try {
-            let professional = await Professional.findOne({ where:{ userId: userId }});
+            let professional = await Professional.findByPk(id,
+                {
+                    include: {
+                        association: Professional.User,
+                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog]
+                    }
+                });
+            if (!professional) {
+                professional = await Professional.findOne({
+                    where: { userId: id },
+                    include: {
+                        association: Professional.User,
+                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog]
+                    }
+                });
+                if (!professional) return { message: responseMessages.USER_NOT_FOUND, content: null };
+            }
             await professional.destroy();
             return { message: responseMessages.USER_DELETED, content: null };
         } catch (error) {
@@ -224,3 +231,45 @@ module.exports = class ProfessionalServices {
         }
     };
 };
+
+//helper functions
+let generateSelectQuery = attributes => {
+    let professionalAttributes = [
+        modelsStructure.professional.id,
+        modelsStructure.professional.actuationFields,
+        modelsStructure.professional.skills
+    ];
+    let userAttributes = [
+        modelsStructure.user.firstname,
+        modelsStructure.user.lastname,
+        modelsStructure.user.email
+    ];
+    let phonelistAttributes = [
+        modelsStructure.phonelist.whatsapp
+    ];
+    let adressAttributes = [];
+    let socialMediaAttributes = [];
+
+    let attArr = []
+
+    if (Array.isArray(attributes)) attArr = [...attributes];
+    else attArr = attributes ? Object.keys(attributes) : [];
+
+    if (attArr.length > 0) {
+        professionalAttributes = Object.keys(modelsStructure.professional).filter(column => attArr.includes(column));
+        userAttributes = Object.keys(modelsStructure.user).filter(column => attArr.includes(column));
+        userAttributes = userAttributes.length > 0 ? userAttributes : [modelsStructure.user.id];
+        adressAttributes = Object.keys(modelsStructure.adress).filter(column => attArr.includes(column));
+        phonelistAttributes = Object.keys(modelsStructure.phonelist).filter(column => attArr.includes(column));
+        socialMediaAttributes = Object.keys(modelsStructure.socialmediaList).filter(column => attArr.includes(column));
+    };
+
+    let queryOptions = { attributes: professionalAttributes, include: { association: Professional.User, include: [] } };
+
+    if (userAttributes.length > 0) queryOptions.include.attributes = userAttributes;
+    if (adressAttributes.length > 0) queryOptions.include.include.push({ association: User.Adress, attributes: adressAttributes });
+    if (phonelistAttributes.length > 0) queryOptions.include.include.push({ association: User.Phonelist, attributes: phonelistAttributes });
+    if (socialMediaAttributes.length > 0) queryOptions.include.include.push({ association: User.SocialMediaCatalog, attributes: socialMediaAttributes });
+
+    return queryOptions;
+}
