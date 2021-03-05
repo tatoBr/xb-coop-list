@@ -19,6 +19,12 @@ module.exports = {
                     .trim()
                     .notEmpty()
             ],
+            logout: [
+                param( ps.user.id )
+                    .trim()
+                    .isUUID()
+                    .withMessage('that\'s not a valid uuid string' )
+            ],
             insert: [
                 body(ps.user.username)
                     .trim()
@@ -79,6 +85,29 @@ module.exports = {
                     .matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/)
                     .withMessage('password must contain letters and numbers combined')
                     .bail()
+            ],
+            patch:[
+                param( ps.user.id )
+                    .trim()
+                    .isUUID()
+                    .withMessage('that\'s not a valid uuid string' ),
+                body([ ps.user.firstname, ps.user.lastname ])
+                    .trim()
+                    .optional({ checkFalsy: true, nullable: true })
+                    .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` })
+                    .withMessage(`This field can't contain special characters`)
+                    .isLength({ min: 3, max:48 })
+                    .withMessage(`${ ps.user.firstname } and ${ps.user.lastname} must be a minimum of 3 characters and a maximum of 48` ),
+                body( ps.user.picture )
+                    .trim()
+                    .optional({ checkFalsy: true, nullable: true })
+                    .isBase64()
+                    .withMessage('It\'s not a valid base64 encoded string.'),
+                body( ps.user.birthdate )
+                    .trim()
+                    .optional({ checkFalsy: true, nullable: true })
+                    .isISO8601()
+                    .withMessage(`This is not a valid date format`)
             ]            
         }
     },
@@ -98,7 +127,8 @@ module.exports = {
                     .exists()
                     .withMessage(`The field '${ps.user.email}' is required.`)
                     .isEmail()
-                    .withMessage(`This is not a valid email`),
+                    .withMessage(`This is not a valid email`)
+                    .normalizeEmail({ all_lowercase: true }),
                 body(ps.user.picture)
                     .trim()
                     .isBase64()
