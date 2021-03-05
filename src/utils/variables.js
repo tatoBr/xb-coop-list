@@ -16,6 +16,43 @@ module.exports = {
             loginAttempts: 'loginAttempts',
             loginWaitTime: 'loginWaitTime' 
         },
+        adress: {
+            id: 'id',
+            cep: 'cep',
+            street: 'street',
+            number: 'number',
+            complement: 'complement',
+            district: 'district',
+            county: 'county',
+            state: 'state',
+            country: 'country'
+        },
+        phonelist: {
+            id: 'id',
+            homephone: 'homephone',
+            workphone: 'workphone',
+            whatsapp: 'whatsapp',
+            otherphones: 'otherphones',
+        },
+        socialmediaList: {
+            id: 'id',
+            instagram: 'instagram',
+            facebook: 'facebook',
+            youtube: 'youtube',
+            tiktok: 'tiktok',
+            twitter: 'twitter',
+            linkedin: 'linkedin',
+            clubhouse: 'clubhouse'
+        },
+        professional: {
+            id: 'id',
+            actuationFields: 'actuationFields',
+            skills: 'skills',
+            experienceLevel: 'experienceLevel',
+            portifolioUrl: 'portifolioUrl',
+            about: 'about',
+            status: 'status' 
+        }
     },
     professionalStructure : {
         id: 'id',
@@ -64,8 +101,7 @@ module.exports = {
         experienceLevel: 'experienceLevel',
         portifolioUrl: 'portifolioUrl',
         about: 'about',
-        status: 'status',
-               
+        status: 'status',               
     },
     responseMessages: {
         USER_SAVED: 'USER SAVED SUCCESSFULLY',
@@ -75,6 +111,7 @@ module.exports = {
         USER_UPDATED: 'USER WAS UPDATED SUCCESSFULLY',
         USER_NOT_MODIFIED: 'USER HAS NOT BEEN MODIFIED',
         USERS_LOADED: 'USERS LOADED SUCCESSFULLY',
+        NO_USER_TO_LOAD: 'THERE ARE NO USERS SAVED IN THE DATA BASE',
         USER_DELETED: 'USER WAS DELETED FROM THE DATABASE',
         USER_LOGGED_OUT: 'USER LOGGED OUT FROM THE SYSTEM',
         USER_ALREADY_EXIST: 'USER ALREADY EXIST IN THE DATABASE',
