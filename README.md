@@ -23,7 +23,7 @@ PATCH /users/login
 _The response body will contain a message and the access token._<br><br>  
 ### Logout user
 _>>PATCH /users/logout/:id_
->Logout user and destroy its access token. Require authentication.
+>Logout user and destroy its access token.
 The request body must be empty.
 _Example:_
 ```
