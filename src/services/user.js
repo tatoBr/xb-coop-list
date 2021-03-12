@@ -1,141 +1,145 @@
 const bcrypt = require( 'bcrypt' );
-const jwt = require( 'jsonwebtoken' );
-const model = require( '../models/user' );
-const authorization = require( '../utils/authorization' );
-const { professionalStructure : {user : us }, responseMessages } = require( '../utils/variables' );
-const { modelsStructure : { user: modelStructure }} = require( '../utils/variables' )
+const userModel = require( '../models/user' );
+const authorization = require( '../middlewares/authorization' );
 
-const LOGIN_WAIT_TIME = 60 * 3 * 1000;
+const { responses } = require( '../utils/constants' )
+const { modelsStructure } = require( '../utils/constants' );
+
+const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, LOGIN_WAIT_TIME, LOGIN_ATTEMPTS, ACCESS_LEVEL, REFRESH_TOKEN} = modelsStructure.user;
+
+const DEFAULT_LOGIN_WAIT_TIME = 60 * 3 * 1000;
 const MAX_LOGIN_ATTEMPTS = 4;
 
-module.exports = {
-    authenticate: async ( email, password )=>{
+module.exports = class UserService{
+    authenticate = async ( email, password )=>{
         try {            
-            let user = await model.findOne(
-                { where: {[ us.email ]: email },
-                attributes: [ us.id, us.username, us.email, us.password, us.loginAttempts, us.loginWaitTime, us.accessLevel ]
-            });            
+            let user = await userModel.findOne({ where: {[EMAIL]: email }});            
             
             if( !user ) {                
                 return {            
-                    message: responseMessages.USER_NOT_FOUND,
+                    message: responses.USER_NOT_FOUND,
                     content: null
                 };        
             }
             
             let now = new Date();
             
-            if( user[us.loginWaitTime] > now)
+            if( user[LOGIN_WAIT_TIME] > now)
             return {
-                message: responseMessages.USER_IN_WAIT_TIME,
+                message: responses.USER_IN_WAIT_TIME,
                 content: {
-                    [us.username]: user[us.username],
-                    [us.email]: user[us.email]
+                    [ USERNAME ]: user[ USERNAME ],
+                    [ EMAIL ]: user[ EMAIL ]
                 }  
             };            
 
-            let passwordMatches =  await bcrypt.compare( password, user[us.password]);
-            
+            let passwordMatches =  await bcrypt.compare( password, user[PASSWORD]);            
             if( !passwordMatches ){
-                if( user[us.loginAttempts] >= MAX_LOGIN_ATTEMPTS ){
-                    user[us.loginWaitTime] = new Date( Date.now() + LOGIN_WAIT_TIME );
-                    user[us.loginAttempts] = 0;
+                if( user[ LOGIN_ATTEMPTS ] >= MAX_LOGIN_ATTEMPTS ){
+                    user[ LOGIN_WAIT_TIME ] = new Date( Date.now() + DEFAULT_LOGIN_WAIT_TIME );
+                    user[ LOGIN_ATTEMPTS ] = 0;
                     await user.save();                
                 }
                 else{
-                    await user.increment({[ us.loginAttempts ]: 1 });  
+                    await user.increment({[ LOGIN_ATTEMPTS ]: 1 });  
                 }
                 
                 return {
-                    message: responseMessages.PASSWORD_MISMATCH,
+                    message: responses.PASSWORD_MISMATCH,
                     content: null
                 };     
             }
             
             let payload = {
-                [us.id]: user[us.id],
-                [us.username]: user[us.username],
-                [us.accessLevel]: user[us.accessLevel],            
+                [USER_ID]: user[USER_ID],
+                [USERNAME]: user[USERNAME],
+                [ACCESS_LEVEL]: user[ACCESS_LEVEL],            
             }       
             
-            user[us.loginAttempts] = 0;
-            user[us.refreshToken] =  authorization.generateRefreshToken( payload );
-            await user.save();
-            
-            let accessToken = authorization.generateAccessToken( payload );
-            let content = {
-                userId: user[us.id],
-                accessToken
-            }
+            user[LOGIN_ATTEMPTS] = 0;
+            user[REFRESH_TOKEN] =  authorization.generateRefreshToken( payload );
+            await user.save(); 
+
             return {
-                message: responseMessages.USER_AUTHENTICATED,
-                content
-            };
-            
+                message: responses.USER_AUTHENTICATED,
+                content : {
+                    [USER_ID]: user[USER_ID],
+                    [USERNAME]: user[USERNAME],
+                    [ACCESS_LEVEL]: user[ACCESS_LEVEL],
+                }      
+            };            
         }
         catch( error ){
             throw error;
         }        
-    },
+    };
 
-    /**
-     * 
-     * @param {String} id - user id
-     * @param {String[]} attributes - colunms to be selected 
-     */
-    getById: async ( id, attributes )=>{
+    getById = async ( id, attributes )=>{
         try {
-            let user =  await model.findByPk( id, { attributes: attributes });
-            if( !user ) return { message: responseMessages.USER_NOT_FOUND, content: null }  
-            return { message: responseMessages.USER_LOADED, content: user }          
+            let user =  await userModel.findByPk( id );
+            if( !user ) return { message: responses.USER_NOT_FOUND, content: null }  
+            return { message: responses.USER_LOADED, content: user }          
         } catch (error) {
             throw error;
         }
-    },
+    };
 
-    update: async( id, data )=>{
+    update = async( id, data )=>{
         try {            
-            let user = await model.findByPk( id );
-            if( !user ) return { message: responseMessages.USER_NOT_FOUND, content: null };
-            for( let key in modelStructure ){
-                if( data[key] !== undefined ) user[key] = data[key];
+            let user = await userModel.findByPk( id );
+            if( !user ) return { message: responses.USER_NOT_FOUND, content: null };
+
+            let columns = [ FIRSTNAME, LASTNAME, PICTURE, BIRTHDATE, REFRESH_TOKEN ];
+            let updatedCols = 0;
+            for( let column of columns ){
+                if( data[column] !== undefined ){
+                    user[column] = data[column];
+                    updatedCols++;
+                }                    
             }
-            await user.save();
-            return { message: responseMessages.USER_UPDATED, content: user };
+            if( updatedCols > 0 ){ 
+                await user.save();
+                return { message: responses.USER_UPDATED, content: user };
+            }
+            return {message: responses.USER_NOT_MODIFIED, content: user };
         } catch (error) {
             throw error;
         }        
-    },
+    };
 
-    updateAccessToken: async ( id, oldToken ) => {
+    updateAccessToken = async ( id, oldToken ) => {
         try {
-            let user =  await model.findByPk(
-                id,
-                {
-                    attributes:[
-                        modelStructure.id,
-                        modelStructure.username,
-                        modelStructure.accessLevel,
-                        modelStructure.refreshToken
-                    ]
-                }
-            );            
-            if( !user ) return { message: responseMessages.USER_NOT_FOUND, content: null }  
+            let user =  await userModel.findByPk( id, { attributes:[ USER_ID, USERNAME, ACCESS_LEVEL, REFRESH_TOKEN ]});            
+            if( !user ) return { message: responses.USER_NOT_FOUND, content: null }  
             
             let payload = {
-                [modelStructure.id]: user[modelStructure.id],
-                [modelStructure.username]: user[modelStructure.username],
-                [modelStructure.accessLevel]: user[modelStructure.accessLevel],            
-            }
+                [USER_ID]: user[USER_ID],
+                [USERNAME]: user[USERNAME],
+                [ACCESS_LEVEL]: user[ACCESS_LEVEL],            
+            };
 
-            let accessToken = authorization.updateAccessToken(
-                oldToken,
-                user[modelStructure.refreshToken],
-                payload
-            );
-            return { message: responseMessages.ACCESS_TOKEN_GENERATED, content: accessToken }
+            let accessToken = authorization.updateAccessToken( oldToken, user[REFRESH_TOKEN], payload );
+            return { message: responses.ACCESS_TOKEN_GENERATED, content: accessToken };
 
         } catch ( error ) {
+            throw error;
+        }
+    };
+
+    generateCredential = async(id, username, accessLevel ) => {
+        try {
+            let invalidPayload = [ id, username, accessLevel ].some( item => {
+                return item === null || item === undefined || item === ""; 
+            });
+    
+            if( invalidPayload )
+                throw new Error('Invalid payload values.')
+            
+            let payload = { id, username, accessLevel }
+            let accessToken = authorization.generateAccessToken( payload );
+            return accessToken ;
+
+        } catch (error) {
             throw error;
         }
     }
