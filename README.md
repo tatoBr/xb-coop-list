@@ -478,7 +478,7 @@ Authorization: Bearer <YOUR TOKEN>
 ```
 _The response body will contain a message and the updated Professional's data._<br><br>  
 ### Delete a professional
-_>> DELETE /professionals/:id_
+_>> DELETE /professionals
 >Allows an professional to delete its own Data. Requires Authorization._
 
 The request body must be empty.
