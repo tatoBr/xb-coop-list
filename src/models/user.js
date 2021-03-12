@@ -1,60 +1,61 @@
 const Sequelize = require( 'sequelize' );
 const connection = require( '../database/index' );
 
-const Adress = require( './adress' );
-const Phonelist = require( './phonelist' );
-const SocialMediaCatalog = require( './socialMediaCatalog' );
+const AdressModel = require( './adress' );
+const PhonelistModel = require( './phonelist' );
+const SocialMediaCatalogModel = require( './socialMediaCatalog' );
 
-const { professionalStructure: { user }} = require('../utils/variables');
+const { modelsStructure : { user }} = require('../utils/constants');
+const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME, REFRESH_TOKEN } = user;
 
 const User = connection.define('user', {
-    [user.id]: {
+    [USER_ID]: {
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.UUIDV1,
         allowNull: false,
         unique: true,
         primaryKey: true
     },
-    [user.username]: {
+    [USERNAME]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
         unique: true        
     },
-    [user.email]: {
+    [EMAIL]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
         unique: true
     },
-    [user.picture]: {
+    [PICTURE]: {
         type: Sequelize.DataTypes.BLOB( 'medium' ),
         allowNull: false
     },
-    [user.birthdate]: {
+    [BIRTHDATE]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [user.firstname]: Sequelize.DataTypes.STRING,
-    [user.lastname]: Sequelize.DataTypes.STRING,
-    [user.cpf]: {
+    [FIRSTNAME]: Sequelize.DataTypes.STRING,
+    [LASTNAME]: Sequelize.DataTypes.STRING,
+    [CPF]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
         unique: true
     },
-    [user.accessLevel]: {
+    [ACCESS_LEVEL]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
     },
-    [user.password]: {
+    [PASSWORD]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [user.refreshToken]: Sequelize.DataTypes.STRING,
-    [user.loginAttempts]: Sequelize.DataTypes.INTEGER,
-    [user.loginWaitTime]: Sequelize.DataTypes.DATE    
+    [REFRESH_TOKEN]: Sequelize.DataTypes.TEXT,
+    [LOGIN_ATTEMPTS]: Sequelize.DataTypes.INTEGER,
+    [LOGIN_WAIT_TIME]: Sequelize.DataTypes.DATE    
 });
 
-User.Adress = User.belongsTo( Adress, { foreignKey: 'userAdress', onDelete: 'cascade', hooks: true });
-User.Phonelist = User.belongsTo( Phonelist, { foreignKey: 'userPhones', onDelete: 'cascade', hooks: true });
-User.SocialMediaCatalog = User.belongsTo( SocialMediaCatalog, { foreignKey: 'userSocialmedias', onDelete: 'cascade', hooks: true });
+User.Adress = User.belongsTo( AdressModel, { foreignKey: 'userAdress', onDelete: 'cascade', hooks: true });
+User.Phonelist = User.belongsTo( PhonelistModel, { foreignKey: 'userPhones', onDelete: 'cascade', hooks: true });
+User.SocialMediaCatalog = User.belongsTo( SocialMediaCatalogModel, { foreignKey: 'userSocialmedias', onDelete: 'cascade', hooks: true });
 
 module.exports = User;

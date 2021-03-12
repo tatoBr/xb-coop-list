@@ -1,42 +1,43 @@
 const Sequelize = require( 'sequelize' );
 const connection = require( '../database/index' );
 
-const { professionalStructure : { adress }} = require( '../utils/variables' );
+const { modelsStructure: { adress }} = require( '../utils/constants' );
+const { ADRESS_ID, CEP, STREET, NUMBER, COMPLEMENT, DISTRICT, COUNTY, STATE, COUNTRY } = adress;
 
 const Adress = connection.define('adress',{
-    id: {
+    [ADRESS_ID]: {
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.UUIDV1(),
         allowNull: false,
         unique: true,
         primaryKey: true        
     },
-    [adress.cep]: {
+    [CEP]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [adress.street]: {
+    [STREET]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [adress.number]: {
+    [NUMBER]: {
         type: Sequelize.DataTypes.INTEGER,
         allowNull: false
     },
-    [adress.complement]: Sequelize.DataTypes.STRING,
-    [adress.district]: {
+    [COMPLEMENT]: Sequelize.DataTypes.STRING,
+    [DISTRICT]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [adress.county]: {
+    [COUNTY]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [adress.state]: {
+    [STATE]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [adress.country]: {
+    [COUNTRY]: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     }
