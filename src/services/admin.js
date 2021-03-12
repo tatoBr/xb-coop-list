@@ -1,35 +1,45 @@
 const bcrypt = require('bcrypt');
+const { Op } = require( 'sequelize' )
 const connection = require('../database/index');
-const User = require('../models/user');
-const { responseMessages: rmsg, userAccessLevel:{ admin }, modelsStructure :{ user : columns }} = require( '../utils/variables')
+const UserModel = require('../models/user');
+const { responses, modelsStructure, userAccessLevel:{ admin: ADMINISTRATOR }} = require( '../utils/constants')
+const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME } = modelsStructure.user;
 
 module.exports = class AdminServices{
-    async save( data ){
+    async create( data ){
         const { username, email, picture, firstname, lastname, birthdate, cpf, password } = data;
+        let columns = [ USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME ];
         const t = await connection.transaction();
 
         try {
+            let user = await UserModel.findOne({ where: {
+                [Op.or]: [
+                    {[ EMAIL ]: email },
+                    {[ USERNAME ]: username },
+                    {[ CPF ]: cpf }
+                ]}
+            });            
+            if( user ) return { message: responses.USER_ALREADY_EXIST, content: user};
+            
             const passwordHash = await bcrypt.hash( password, 10 );            
-
-            let administrator = await User.create({
-                [columns.username]: username,
-                [columns.email]: email,
-                [columns.picture]: picture,
-                [columns.firstname]: firstname,
-                [columns.lastname]: lastname,
-                [columns.birthdate]: birthdate,
-                [columns.cpf]: cpf,
-                [columns.password]: passwordHash,
-                [columns.accessLevel]: admin,
-                [columns.loginAttempts]: 0,
-                [columns.loginWaitTime]: new Date()
+            let admin = await UserModel.create({
+                [USERNAME]: username,
+                [EMAIL]: email,
+                [PICTURE]: picture,
+                [FIRSTNAME]: firstname,
+                [LASTNAME]: lastname,
+                [BIRTHDATE]: birthdate,
+                [CPF]: cpf,
+                [PASSWORD]: passwordHash,
+                [ACCESS_LEVEL]: ADMINISTRATOR,
+                [LOGIN_ATTEMPTS]: 0,
+                [LOGIN_WAIT_TIME]: new Date()
             },
             {
                 transaction: t
-            })
-            let{ id, username: adminName, email: adminEmail } = administrator;
+            });            
             await t.commit();
-            return { message: rmsg.USER_SAVED, content: { id, username: adminName, email: adminEmail }};
+            return { message: responses.USER_SAVED, content: mapAdmin(admin, columns, [USER_ID, USERNAME, EMAIL, PICTURE ])};
         } catch (error) {
            throw error;
         }
@@ -38,54 +48,34 @@ module.exports = class AdminServices{
 
     async readById( id ){
         try {
-            let administrator = await User.findByPk( id, {
-                attributes: [                    
-                    columns.username,
-                    columns.email,
-                    columns.picture,
-                    columns.firstname,
-                    columns.lastname,
-                    columns.birthdate                
-                ]
-            });
-            if( !administrator ) return { message: rmsg.USER_NOT_FOUND, content: null };
-            return { message: rmsg.USERS_LOADED, content: administrator }            
+            let administrator = await UserModel.findByPk( id );
+            if( !administrator )
+                return { message: responses.USER_NOT_FOUND, content: null };
+            
+            return { message: responses.USER_LOADED, content: administrator }            
         } catch (error) {
             throw error;
         }
     }
 
     async update( id, data ){
-        try {
-            let attributes = [ columns.picture, columns.firstname, columns.lastname, columns.birthdate ];
-            let changes = 0;      
-            let administrator = await User.findByPk(
-                id,
-                {
-                    attributes:[
-                        columns.id,
-                        columns.username,
-                        columns.email,
-                        columns.firstname,
-                        columns.lastname,
-                        columns.birthdate
-                    ]
-                }
-            );
+        try {           
+            let updatedColumns = 0;      
+            let administrator = await UserModel.findByPk( id );
 
-            if( !administrator ) return { message: rmsg.USER_NOT_FOUND, content: null };
+            if( !administrator ) return { message: responses.USER_NOT_FOUND, content: null };
 
-            for( let propertie in data ){
-                if( attributes.includes( propertie ) && data[ propertie ]){
-                    administrator[ propertie ] = data[propertie];
-                    changes++;
+            for( let property in data ){
+                if( property in administrator && data[ property ] ){
+                    administrator[ property ] = data[ property ];
+                    updatedColumns++;
                 }
             }
-            if( changes > 0 ){
+            if( updatedColumns > 0 ){
                 await administrator.save();
-                return { message: rmsg.USER_UPDATED, content: administrator };
+                return { message: responses.USER_UPDATED, content: administrator };
             }
-            return { message: rmsg.USER_NOT_MODIFIED, content: null };
+            return { message: responses.USER_NOT_MODIFIED, content: null };
         } catch (error) {
             throw error;
         }         
@@ -93,26 +83,27 @@ module.exports = class AdminServices{
 
     async delete( id ){
         try {
-            let administrator = await User.findByPk( id, { attributes: [ columns.id ]})
-            if( !administrator ) return { message: rmsg.USER_NOT_FOUND, content: null };
+            let administrator = await UserModel.findByPk( id )
+            if( !administrator ) return { message:responses.USER_NOT_FOUND, content: null };
 
             await administrator.destroy();
 
-            return { message: rmsg.USER_DELETED, content: administrator };
+            return { message:responses.USER_DELETED, content: administrator };
         } catch (error) {
             throw error;
         }
     }
 
     async authenticate( email, password ){
-        let administrator = await User.findOne({
+        let administrator = await UserModel.findOne({
             where: {[ columns.email ]: email },
             attributes:[ columns.id, columns.email, columns.password ]
         });            
         
         if( !administrator ) return { message: responseMessages.USER_NOT_FOUND, content: null };        
                 
-        let now = new Date();
+        let now = new Date()
+        ;
         
         if( administrator[ columns.loginWaitTime ] > now)
             return {
@@ -141,9 +132,8 @@ module.exports = class AdminServices{
             };     
         }
 
-        //******* */
         try {
-            let administrator = await User.findOne({
+            let administrator = await UserModel.findOne({
                 where: {[ columns.email ]: email },
                 attributes:[ columns.id, columns.email, columns.password ]
             }
@@ -160,4 +150,12 @@ module.exports = class AdminServices{
             throw error;
         }
     }
+}
+
+function mapAdmin( admin, columns, attributes ){    
+    let mapped = {};
+    for( let attribute of attributes ){
+        if( columns.includes( attribute )) mapped[attribute] = admin[attribute]
+    }
+    return mapped;
 }
