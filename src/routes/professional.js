@@ -1,36 +1,33 @@
 const { Router } = require( 'express' );
-const controller = require( '../controllers/professional' );
-const { checkProfessionalPassport  } = require( '../utils/authorization' );
-const { professional: { chains : validationChains }, checkResults} = require( '../utils/inputValidator');
+const ProfessionalController = require( '../controllers/professional' );
+const { verifyAuthorization } = require( '../middlewares/authorization' );
+const {
+    user: validateUser,
+    adress: validateAdress,
+    phonelist: validatePhonelist,
+    socialmedia: validateSocialMediaList,
+    professional: validateProfessional,
+    checkResults
+} = require( '../middlewares/inputValidator');
 
 const router = Router();
 
 router.post( '/',
-    validationChains.insert,
+    validateUser.post,
+    validateAdress.post,
+    validatePhonelist.post,
+    validateSocialMediaList.post,
+    validateProfessional.post,
     checkResults,    
-    controller.post
+    ProfessionalController.post
 );
 
-router.get( '/',
-    validationChains.selectAll,
-    checkResults,
-    controller.getAll );
+router.get( '/:id', ProfessionalController.get );
 
-router.get( '/:id',
-    checkProfessionalPassport,
-    controller.get );
+router.get( '/', ProfessionalController.getAll );
 
-router.patch( '/:id',
-    checkProfessionalPassport,
-    validationChains.patch,
-    checkResults,
-    controller.update );
+router.patch( '/', verifyAuthorization, ProfessionalController.patch );
 
-router.delete(
-    '/:id',
-    checkProfessionalPassport,
-    controller.delete
-);
-router.post( '/protected/:id', checkProfessionalPassport, ( req, res ) => res.send({message: 'this is a protected route'}))
+router.delete('/', verifyAuthorization, ProfessionalController.delete );
 
 module.exports = router;

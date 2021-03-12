@@ -2,20 +2,16 @@ const express = require('express');
 const router = express.Router();
 
 const controller = require( '../controllers/user' );
-const { user: { chains: validationChains }, checkResults } = require( '../utils/inputValidator');
+const { verifyAuthorization } = require('../middlewares/authorization');
+const { user: userInputValidator , checkResults } = require( '../middlewares/inputValidator');
 
 router.patch('/login',
-  validationChains.authentication,
+  userInputValidator.authenticate,
   checkResults,
-  controller.authenticate
+  controller.login
 );
 
-router.patch(
-  '/logout/:id',
-  validationChains.logout,
-  checkResults,
-  controller.logout
-);
+router.patch('/logout', verifyAuthorization, controller.logout );
 router.get('/acesstoken/:id', controller.getAccessToken );
 
 module.exports = router;

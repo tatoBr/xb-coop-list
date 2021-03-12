@@ -1,79 +1,55 @@
 const router = require('express').Router();
-const controller = require( '../controllers/admin' );
-const profController = require( '../controllers/professional')
+const adminController = require( '../controllers/admin' );
+const professionalController = require( '../controllers/professional');
+const {
+    user: validateUser,
+    adress: validateAdress,
+    phonelist: validatePhonelist,
+    socialmedia: validateSocialMediaCatalog,
+    professional: validadteProfessional,
+    checkResults: checkValidationResults
+} = require( '../middlewares/inputValidator' );
 
+const { checkAdminPassport, verifyAuthorization } = require( '../middlewares/authorization' );
 
-const { checkResults: checkValidationResults, user: { chains: validationChains }, professional: { chains: prfValidationChains }} = require( '../utils/inputValidator' );
-const { checkAdminPassport } = require( '../utils/authorization' );
+router.post( '/', verifyAuthorization, validateUser.post, checkValidationResults, adminController.post );
 
-// router.patch(
-//     '/login',
-//     validationChains.authentication,
-//     checkResults,    
-//     userController.authenticate
-// );
+router.get( '/', verifyAuthorization, adminController.get );
 
-// router.patch( '/logout/:id', userController.logout );
+router.patch( '/', verifyAuthorization, validateUser.patch, checkValidationResults, adminController.patch );
 
-router.post( '/:id',
-    checkAdminPassport,  
-    validationChains.insert,    
-    checkValidationResults,  
-    controller.create
-);
+router.delete('/', verifyAuthorization, validateUser.authenticate, checkValidationResults, adminController.delete );
 
-router.get(
-    '/:id',
-    checkAdminPassport,
-    controller.read
-);
-
-router.patch(
-    '/:id',
-    checkAdminPassport,
-    validationChains.patch,
-    checkValidationResults,
-    controller.update
-);
-
-router.delete('/:id',
-    checkAdminPassport,
-    validationChains.authentication,
-    checkValidationResults,
-    controller.delete
-);
 
 router.post(
-    '/:id/manage/professionals',
-    checkAdminPassport,
-    prfValidationChains.insert,
+    '/manage/professionals',
+    verifyAuthorization,
+    validateUser.post,
+    validateAdress.post,
+    validatePhonelist.post,
+    validateSocialMediaCatalog.post,
+    validadteProfessional.post,
     checkValidationResults,
-    profController.post
+    adminController.postProfessional
 );
 
-router.get(
-    '/:id/manage/professionals',
-    checkAdminPassport,
-    controller.readAllProfessionals
-);
+router.get( '/manage/professionals', verifyAuthorization, adminController.getProfessionals );
 
-router.get(
-    '/:id/manage/professionals/:profId',
-    checkAdminPassport,    
-    controller.readProfessionalById,
-);
+router.get( '/manage/professionals/:id', verifyAuthorization, validadteProfessional.getById, checkValidationResults, adminController.getProfessionalById );
 
 router.patch(
-    '/:id/manage/professionals/:profId',
-    checkAdminPassport,
-    prfValidationChains.patch,
+    '/manage/professionals/:id',
+    verifyAuthorization,
+    validadteProfessional.getById,
+    validateUser.patch,
+    validateAdress.patch,
+    validatePhonelist.patch,
+    validateSocialMediaCatalog.patch,
+    validadteProfessional.patch,
     checkValidationResults,
-    controller.updateProfessional
+    adminController.patchProfessional
 );
 
-router.delete(
-    '/:id/manage/professionals/:profId',
-    controller.deleteProfessional
-);
+router.delete( '/manage/professionals/:id', verifyAuthorization, adminController.deleteProfessional );
 
 module.exports = router;
