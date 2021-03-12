@@ -1,62 +1,72 @@
-const userServices = require( '../services/user' );
-const { professionalStructure: { user : us }, responseMessages } = require( '../utils/variables' )
-const { modelsStructure : { user: modelStructure }} = require( '../utils/variables' );
+const UserServices = require( '../services/user' );
+const userServices = new UserServices();
+
+const { responses } = require( '../utils/constants' )
+const { modelsStructure, httpStatusCodes } = require( '../utils/constants' );
+const { OK, CREATED, ACCEPTED, NO_CONTENT, NOT_MODIFIED, BAD_REQUEST, UNAUTHORIZED, FORBIDEN, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR } = httpStatusCodes
+
+const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, LOGIN_WAIT_TIME, LOGIN_ATTEMPTS, ACCESS_LEVEL, REFRESH_TOKEN} = modelsStructure.user;
 const http = require( 'http' );
-const { clearAccessToken } = require('../utils/authorization');
+const { clearAccessToken } = require('../middlewares/authorization');
 
 
 module.exports = {
-    authenticate: async( req, res, next )=>{
+    login: async( req, res, next )=>{
         let { email, password } = req.body;
         try {
             let authenticationResult = await userServices.authenticate( email, password );
     
             switch ( authenticationResult.message ) {
-                case responseMessages.USER_NOT_FOUND:            
-                    res.status( 404 );                
+                case responses.USER_NOT_FOUND:            
+                    res.status( NOT_FOUND );                
                     break;
     
-                case responseMessages.USER_IN_WAIT_TIME:
-                case responseMessages.PASSWORD_MISMATCH:
-                    res.status( 401 );
+                case responses.USER_IN_WAIT_TIME:
+                case responses.PASSWORD_MISMATCH:
+                    res.status( UNAUTHORIZED );
                     break;
     
-                case responseMessages.USER_AUTHENTICATED:
-                    res.status( 200 );
-                    res.header('Authorization', `Basic ${ authenticationResult.content.accessToken }`)
+                case responses.USER_AUTHENTICATED:{
+                    let user = authenticationResult.content;
+                    let accessToken = await userServices.generateCredential( user[USER_ID], user[USERNAME], user[ACCESS_LEVEL ]);
+
+                    let message = responses.USER_LOGGED_IN
+                    let content = { id: user[USER_ID], accessToken } 
+                    return res.status( OK ).json({ message, content });                    
                     break;
+                }
     
                 default:
-                    res.status( 500 );
+                    res.status( INTERNAL_SERVER_ERROR );
                     break;
             }
             return res.json({ message: authenticationResult.message, content: authenticationResult.content });
             
         } catch (error) {
-            return res.status( 500 ).json({ message: error.message, content: error });
+            return res.status( code.INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     },
 
     logout: async( req, res )=>{
-        const { id } = req.params; 
+        const { id } = req.body.credentials; 
         try {
-            let updateResult = await userServices.update( id, {[modelStructure.refreshToken]:""});
+            let updateResult = await userServices.update( id, {[REFRESH_TOKEN]:""});
 
             switch ( updateResult.message ) {
-                case responseMessages.USER_UPDATED:
-                    clearAccessToken( id );                    
-                    res.status( 200 ).json({ message: responseMessages.USER_LOGGED_OUT, content: null });
+                case responses.USER_UPDATED:
+                case responses.USER_NOT_MODIFIED:                                     
+                    res.status( OK ).json({ message: responses.USER_LOGGED_OUT, content: null });
                     break;
-                case responseMessages.USER_NOT_FOUND:
-                    res.status( 404 ).json( updateResult );
+                case responses.USER_NOT_FOUND:
+                    res.status( NOT_FOUND ).json( updateResult );
                     break;
                 default:
-                    res.status( 500 ).json({ message:'Something went wrong.', content })
+                    res.status(INTERNAL_SERVER_ERROR ).json({ message:'Something went wrong.', content: null })
                     break;
             }
 
         } catch (error) {
-            return res.status( 500 ).json({ message: error.message, content: error });
+            return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     },
 
@@ -91,7 +101,7 @@ module.exports = {
             request.end();
 
         } catch (error) {
-            return res.status( 500 ).json({ message: error.message, content: error });
+            return res.status( code.INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     }
 }

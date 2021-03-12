@@ -1,125 +1,181 @@
-const Services = require('../services/professional');
-const { modelsStructure } = require('../utils/variables')
-const { responseMessages: messages, responseMessages } = require('../utils/variables');
-const { clearAccessToken } = require('../utils/authorization')
+const ProfessionalServices = require('../services/professional');
 
-const services = new Services();
+const { modelsStructure, professionalStatus, httpStatusCodes } = require('../utils/constants');
+const { responses } = require('../utils/constants');
+const { modelMapper } = require( '../utils/helpers' )
+
+const professionalServices = new ProfessionalServices();
+
+const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD } = modelsStructure.user;
+const { ACTIVE, INACTIVE, IN_ANALYSIS } = professionalStatus
+const { OK, ACCEPTED, CREATED, NOT_FOUND, CONFLICT } = httpStatusCodes;
+
 
 module.exports = {
     post: async (req, res) => {
-        try {            
-            let save = await services.save(req.body);
-        
-            switch (save.message) {
-                case responseMessages.USER_SAVED:
-                    res.status(201)
-                    break;
-                case responseMessages.USER_ALREADY_EXIST:
-                    res.status(409)
-                    break;
-                default:
-                    res.status(500)
-                    break;
-            }        
-            return res.json(save);
-        } catch (error) {
-            return res.status( 500 ).json( error );
-        }
-    },
-
-    get: async (req, res) => {
         try {
-            let { id } = req.params;
-            let loadResult = await services.loadById( id );
-    
-            switch ( loadResult.message ) {
-                case responseMessages.USER_LOADED:
-                    res.status(200);
-                    break;
-    
+            let createResult = await professionalServices.create(req.body);
+        
+            switch (createResult.message) {
+                case responses.USER_SAVED:{
+                    let message = createResult.message;
+                    let content = modelMapper( createResult.content.user, [ USER_ID, USERNAME, EMAIL ]);
+                    return res.status( CREATED ).json({ message, content });
+                    
+                }
+                case responses.USER_ALREADY_EXIST:{
+                    let message = createResult.message;
+                    let content = modelMapper( createResult.content, [ USERNAME, EMAIL, CPF ]);
+                    return res.status( CONFLICT ).json({ message, content });                   
+                }
                 default:
-                    res.status(500)
-                    break;
-            }
-    
-            return res.json( loadResult );            
+                    throw new Error( 'Unexpected Response Message.');
+            } 
         } catch (error) {
-            return res.status( 500 ).json( error );
+            return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     },
-
+    
     getAll: async (req, res) => {
-        try {  
-            let attributes = [
-                modelsStructure.user.firstname,
-                modelsStructure.user.lastname,
-                modelsStructure.user.email,
-                modelsStructure.phonelist.whatsapp,
-                modelsStructure.professional.actuationFields,
-                modelsStructure.professional.skills,
-                modelsStructure.professional.experienceLevel
-            ]          
-            let loadResult = await services.loadAll(attributes);
+    try {            
+        let readResult = await professionalServices.read();            
+        
+        switch (readResult.message) {
+            case responses.USERS_LOADED:{
 
-            switch (loadResult.message) {
-                case responseMessages.USERS_LOADED:
-                    res.status( 200 )
-                    break;
+                let mappedProfessionals = [];
+                let activeProfessionals = [];
+
+                if( Array.isArray( readResult.content )){
+                    activeProfessionals = readResult.content.filter( element => element.status === ACTIVE );
+                    mappedProfessionals = activeProfessionals.map( mapProfessional );              
+                };
+                
+                let page = parseInt(req.query.page);
+                let limit = parseInt(req.query.limit);
+
+                if( !page || !limit ) return res.json({ message: readResult.message, content: readResult.content.map( mapProfessional )});                
+               
+                let paginated;
+                
+                let startIndex = (page - 1) * limit;
+                let endIndex = startIndex + limit;
+                let lastIndex = mappedProfessionals.length - 1;
+                
+                if (startIndex > lastIndex || limit > mappedProfessionals.length ) paginated = [ ...mappedProfessionals ]
+                else if (endIndex > lastIndex) paginated = mappedProfessionals.slice( startIndex )
+                else paginated = mappedProfessionals.slice(startIndex, endIndex);
+                
+                return res.status( OK ).json({ message: readResult.message, content: paginated });
+            }                
             
-                default:
-                    res.status( 500 )
-                    break;
+            case responses.NO_USER_TO_LOAD:
+            {
+                return res.status( OK ).json({ message: readResult.message, content: null });
             }
 
-            if( loadResult.content === null ) return res.json( loadResult );
-    
-            let page = parseInt(req.query.page);
-            let limit = parseInt(req.query.limit);
-            if( !page || !limit ) return res.json( loadResult );
-                   
-            let professionals = loadResult.content;
-            let paginated;
-    
-            let startIndex = (page - 1) * limit;
-            let endIndex = startIndex + limit;
-            let lastIndex = professionals.length - 1;
-    
-            if (startIndex > lastIndex || limit > professionals.length ) paginated = [ ...professionals ]
-            else if (endIndex > lastIndex) paginated = professionals.slice( startIndex )
-            else paginated = professionals.slice(startIndex, endIndex);
-            
-            return res.json( { message: loadResult.message, content: paginated });
-
-        } catch (error) {
-            return res.status( 500 ).json( error );
+            default:
+                throw new Error( 'Unexpected Response Message.'); 
+        }               
+            // };
+                
+            //     if( readResult.content === null ) return res.json({ loadResult: readResult });
+            //     let mappedProfessionals = [];
+            //     let activeProfessionals = [];
+            //     if( Array.isArray( readResult.content )){
+            //         activeProfessionals = readResult.content.filter( element => element.status === ACTIVE );
+            //         mappedProfessionals = activeProfessionals.map( mapProfessional );              
+            //     };
+                
+            //     let page = parseInt(req.query.page);
+            //     let limit = parseInt(req.query.limit);
+            //     if( !page || !limit ) return res.json( readResult );
+                
+            //     let professionals = readResult.content;
+            //     let paginated;
+                
+            //     let startIndex = (page - 1) * limit;
+            //     let endIndex = startIndex + limit;
+            //     let lastIndex = mappedProfessionals.length - 1;
+                
+            //     if (startIndex > lastIndex || limit > mappedProfessionals.length ) paginated = [ ...mappedProfessionals ]
+            //     else if (endIndex > lastIndex) paginated = mappedProfessionals.slice( startIndex )
+            //     else paginated = mappedProfessionals.slice(startIndex, endIndex);
+                
+            //     return res.json( { message: readResult.message, content: paginated });
+                
+        } catch ( error ) {
+            return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     },
+            
+    get: async (req, res) => {
+                try {
+                    let { id } = req.params;
+                    let readResult = await professionalServices.readById( id );
+            
+                    switch ( readResult.message ) {
+                        case responses.USER_LOADED:
+                            return res.status( OK ).json({ message: readResult.message, content: mapProfessional(readResult.content)});
+                        
+                            case responses.USER_NOT_FOUND:
+                                return res.status( NOT_FOUND ).json({ message: readResult.message, content: null })
 
-    update: async (req, res) => {
-        let { id } = req.params;
-        let response = await services.update(id, req.body);
-        res.status(202).json(response);
+                        default:
+                            throw new Error( 'Unexpected Response Message.');                           
+                    }           
+                            
+                } catch (error) {
+                    return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
+                }
+    },
+
+    patch: async (req, res) => {
+        try {
+            let { id } = req.body.credentials
+            let updateResult = await professionalServices.update(id, req.body);
+            switch (updateResult.message ) {
+                case responses.USER_UPDATED:{
+                    return res.status( ACCEPTED ).json({ message: updateResult.message, content: mapProfessional( updateResult.content )})
+                }                   
+                    
+                case responses.USER_NOT_FOUND:{
+                    return res.status( NOT_FOUND ).json({ message: updateResult.message, content: null });
+                }
+
+                default:
+                    throw new Error( 'Unexpected Response Message.');                    
+            }                        
+        } catch (error) {
+            return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
+        }        
     },
 
     delete: async (req, res) => {
         try {
-            const { id } = req.params;
-            let response = await services.delete( id );
-            switch (response.message) {
-                case responseMessages.USER_DELETED:
-                    clearAccessToken( id );
-                    res.status( 204 );                    
-                    break;
-                case responseMessages.USER_NOT_FOUND:
-                    res.status( 400 );                    
-                    break;
-            
+            const { id } = req.body.credentials;
+            let deleteResult = await professionalServices.delete( id );
+            switch (deleteResult.message) {
+                case responses.USER_DELETED:                    
+                    return res.status( OK ).json({ message: deleteResult.message, content: null });                    
+                   
+                case responses.USER_NOT_FOUND:
+                    return res.status( NOT_FOUND ).json({ message: deleteResult.message, content: null });
+                    
                 default:
-                    break;
-            }       
-            res.json( response );            
+                    throw new Error( 'Unexpected Response Message.');       
+            }     
+               
         } catch (error) {
-            return res.status( 500 ).json( error );
+            return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
+    }
+}
+
+function mapProfessional( professional ){
+    return {
+        id: professional.id,
+        username: professional.user.username,
+        status: professional.status
     }
 }
