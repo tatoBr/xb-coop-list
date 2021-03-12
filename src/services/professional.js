@@ -1,21 +1,23 @@
-const bcrypt = require('bcrypt');
+const { Op } = require( 'sequelize' )
 
+const bcrypt = require('bcrypt');
 const connection = require('../database/index');
 
-const User = require('../models/user');
-const Professional = require('../models/professional');
+const UserModel = require('../models/user');
+const ProfessionalModel = require('../models/professional');
 
-const { userAccessLevel: al, professionalStructure: ps, responseMessages, privateKey } = require('../utils/variables');
-const { modelsStructure } = require('../utils/variables');
-const { user } = require('../utils/inputValidator');
+const { modelsStructure, professionalStatus } = require('../utils/constants');
+const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME, REFRESH_TOKEN } = modelsStructure.user;
+const { ADRESS_ID, CEP, STREET, NUMBER, COMPLEMENT, DISTRICT, COUNTY, STATE, COUNTRY } = modelsStructure.adress;
+const { PHONELIST_ID, WHATSAAPP, HOMEPHONE, WORKPHONE, OTHERPHONES } = modelsStructure.phonelist
+const { SOCIALMEDIAS_ID, INSTAGRAM, FACEBOOK, YOUTUBE, TWITTER, LINKEDIN, TIKTOK, CLUBHOUSE } = modelsStructure.socialmediaList
+const { PROFESSIONAL_ID, ACTUATION_FIELDS, SKILLS, EXPERIENCE_LEVEL, ABOUT, PORTIFOLIO_URL, STATUS } = modelsStructure.professional
 
+const { ACTIVE, INACTIVE, IN_ANALYSIS } = professionalStatus;
+const { userAccessLevel: { professional: PROFESSIONAL }, responses } = require( '../utils/constants')
 
-
-module.exports = class ProfessionalServices {
-    /**    
-     * @param { data } data 
-     */
-    async save(data) {
+module.exports = class ProfessionalServices {    
+    async create( data ) {
         let {
             username, email, picture, firstname, lastname, birthdate, cpf, password,
             cep, street, number, complement, district, county, state, country,
@@ -26,172 +28,170 @@ module.exports = class ProfessionalServices {
         } = data;
         const t = await connection.transaction()
 
-        try {
+        try {           
+            let user = await UserModel.findOne({ where: {
+                [Op.or]: [
+                    {[ EMAIL ]: email },
+                    {[ USERNAME ]: username },
+                    {[ CPF ]: cpf }
+                ]}
+            });            
+            if( user ) return { message: responses.USER_ALREADY_EXIST, content: user};            
+            
             const hash = await bcrypt.hash(password, 10);
-
-            const professional = await Professional.create({
+            const professional = await ProfessionalModel.create({
                 'user': {
-                    [ps.user.username]: username,
-                    [ps.user.email]: email,
-                    [ps.user.picture]: picture,
-                    [ps.user.firstname]: firstname,
-                    [ps.user.lastname]: lastname,
-                    [ps.user.birthdate]: birthdate,
-                    [ps.user.cpf]: cpf,
-                    [ps.user.password]: hash,
-                    [ps.user.accessLevel]: al.professional,
-                    [ps.user.loginAttempts]: 0,
-                    [ps.user.loginWaitTime]: new Date(),
+                    [USERNAME]: username,
+                    [EMAIL]: email,
+                    [PICTURE]: picture,
+                    [FIRSTNAME]: firstname,
+                    [LASTNAME]: lastname,
+                    [BIRTHDATE]: birthdate,
+                    [CPF]: cpf,
+                    [PASSWORD]: hash,
+                    [ACCESS_LEVEL]: PROFESSIONAL,
+                    [LOGIN_ATTEMPTS]: 0,
+                    [LOGIN_WAIT_TIME]: new Date(),
                     'adress': {
-                        [ps.adress.cep]: cep,
-                        [ps.adress.street]: street,
-                        [ps.adress.number]: number,
-                        [ps.adress.complement]: complement,
-                        [ps.adress.district]: district,
-                        [ps.adress.county]: county,
-                        [ps.adress.state]: state,
-                        [ps.adress.country]: country
+                        [CEP]: cep,
+                        [STREET]: street,
+                        [NUMBER]: number,
+                        [COMPLEMENT]: complement,
+                        [DISTRICT]: district,
+                        [COUNTY]: county,
+                        [STATE]: state,
+                        [COUNTRY]: country
                     },
                     'phonelist': {
-                        [ps.phonelist.homephone]: homephone,
-                        [ps.phonelist.workphone]: workphone,
-                        [ps.phonelist.whatsapp]: whatsapp,
-                        [ps.phonelist.otherphones]: otherphones
+                        [HOMEPHONE]: homephone,
+                        [WORKPHONE]: workphone,
+                        [WHATSAAPP]: whatsapp,
+                        [OTHERPHONES]: otherphones
                     },
                     'socialmediaCatalog': {
-                        [ps.socialmediaList.instagram]: instagram,
-                        [ps.socialmediaList.facebook]: facebook,
-                        [ps.socialmediaList.youtube]: youtube,
-                        [ps.socialmediaList.tiktok]: tiktok,
-                        [ps.socialmediaList.twitter]: twitter,
-                        [ps.socialmediaList.linkedin]: linkedin,
-                        [ps.socialmediaList.clubhouse]: clubhouse
+                        [INSTAGRAM]: instagram,
+                        [FACEBOOK]: facebook,
+                        [YOUTUBE]: youtube,
+                        [TIKTOK]: tiktok,
+                        [TWITTER]: twitter,
+                        [LINKEDIN]: linkedin,
+                        [CLUBHOUSE]: clubhouse
                     }
                 },
-                [ps.actuationFields]: actuationFields,
-                [ps.skills]: skills,
-                [ps.experienceLevel]: experienceLevel,
-                [ps.portifolioUrl]: portifolioUrl,
-                [ps.about]: about
+                [ACTUATION_FIELDS]: actuationFields,
+                [SKILLS]: skills,
+                [EXPERIENCE_LEVEL]: experienceLevel,
+                [PORTIFOLIO_URL]: portifolioUrl,
+                [ABOUT]: about,
+                [STATUS]: [ ACTIVE, INACTIVE, IN_ANALYSIS ][Math.floor(Math.random() * 3 )] 
             },
-                {
-                    transaction: t,
+            {
+                transaction: t,
+                include: {
+                    association: ProfessionalModel.User,
+                    include: [UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog]
+                }
+            });
+            await t.commit()
+            return { message: responses.USER_SAVED, content: professional };
+
+        } catch (error) {
+            await t.rollback();            
+            throw error;
+        }
+    };
+
+    async readById(id) {
+        try {
+            let queryResult = await ProfessionalModel.findByPk(id,{
+                include: {
+                    association: ProfessionalModel.User,
+                    include: [ UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog ]
+                }
+            });
+
+            if ( !queryResult ) {
+                queryResult = await ProfessionalModel.findOne({
+                    where: { userId: id },
                     include: {
-                        association: Professional.User,
-                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog]
+                        association: ProfessionalModel.User,
+                        include: [ UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog ]
                     }
                 });
-            await t.commit()
-            return { message: responseMessages.USER_SAVED, content: professional };
-
-        } catch (error) {
-            await t.rollback();
-            if (error.name === "SequelizeUniqueConstraintError") {
-                return {
-                    message: responseMessages.USER_ALREADY_EXIST, content: error.errors.map(element => {
-                        return {
-                            message: element.message,
-                            field: element.path,
-                            value: element.value,
-                        }
-                    })
-                }
-            };
-            return { message: error.code, message: error.message };
-        }
-    };
-
-    /**
-     * @param { String } id 
-     */
-    async loadById(id, attributes = undefined) {
-        try {
-            let queryOptions = generateSelectQuery(attributes);
-            let selectResult = await Professional.findByPk(id, queryOptions);
-
-            if (!selectResult) {
-                queryOptions.where = { userId: id }
-                selectResult = await Professional.findOne(queryOptions);
-                if (!selectResult) return { message: responseMessages.USER_NOT_FOUND, content: null };
+                if ( !queryResult )
+                    return { message: responses.USER_NOT_FOUND, content: null };
             }
 
-            return { message: responseMessages.USER_LOADED, content: selectResult };
+            return { message: responses.USER_LOADED, content: queryResult };
         } catch (error) {
-            return { message: error.message, content: error };
+            return { message: error.code, content: error };
         }
     };
 
-    async loadAll(attributes) {
+    async read() {
         try {
-            let selectResult = await Professional.findAll(generateSelectQuery(attributes));
+            let professionals = await ProfessionalModel.findAll({
+                include: {
+                    association: ProfessionalModel.User,
+                    include: [ UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog ]
+                }
+            });
 
-            if (selectResult.length > 0) return { message: responseMessages.USERS_LOADED, content: selectResult };
-            return { message: responseMessages.NO_USER_TO_LOAD, content: selectResult };
+            if (professionals.length > 0)
+                return { message:  responses.USERS_LOADED, content: professionals };
+
+            return { message: responses.NO_USER_TO_LOAD, content: professionals };
         } catch (error) {
-            return { message: error.message, content: null };
+           throw error;
         }
     };
 
     async update(id, data) {
         try {
-            let profColumns = [
-                modelsStructure.professional.actuationFields,
-                modelsStructure.professional.skills,
-                modelsStructure.professional.experienceLevel,
-                modelsStructure.professional.portifolioUrl
-            ];
-            let userColumns = [
-                modelsStructure.user.firstname,
-                modelsStructure.user.lastname,
-                modelsStructure.user.picture,
-                modelsStructure.user.birthdate
-            ];
+            let profColumns = [ ACTUATION_FIELDS, SKILLS, EXPERIENCE_LEVEL, PORTIFOLIO_URL, ABOUT ];
+            let userColumns = [ FIRSTNAME, LASTNAME, PICTURE, BIRTHDATE ];
             let adressColumns = Object.values(modelsStructure.adress);
             let socialMediaColumns = Object.values(modelsStructure.socialmediaList);
             let updatedColumns = 0;
 
-            let professional = await Professional.findByPk(id, {
-                attributes: [modelsStructure.professional.id],
+            let professional = await ProfessionalModel.findByPk( id, {
                 include: {
-                    association: Professional.User,
-                    include: [User.Adress, User.Phonelist, User.SocialMediaCatalog],
-                    attributes: [modelsStructure.user.username, modelsStructure.user.email]
-                }
+                    association: ProfessionalModel.User,
+                    include: [UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog],                        
+                }            
             });
 
             if (!professional) {
-                professional = await Professional.findOne({
-                    where: { userId: id },
-                    attributes: [modelsStructure.professional.id],
+                professional = await ProfessionalModel.findOne({
+                    where: { userId: id },                   
                     include: {
-                        association: Professional.User,
-                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog],
-                        attributes: [modelsStructure.user.username, modelsStructure.user.email]
+                        association: ProfessionalModel.User,
+                        include: [UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog],                        
                     }
                 });
-                if (!professional) return { message: responseMessages.USER_NOT_FOUND, content: null };
+                if (!professional) return { message: responses.USER_NOT_FOUND, content: null };
             }
 
             for (let column of profColumns)
-                if (data[column]) {
+                if (column in data) {
                     updatedColumns++;
                     professional[column] = data[column];
                 }
 
             for (let column of userColumns)
-                if (data[column]) {
+                if (column in data) {
                     updatedColumns++;
                     professional.user[column] = data[column];
                 }
 
             for (let column of adressColumns)
-                if (data[column]) {
+                if (column in data) {
                     updatedColumns++;
                     professional.user.adress[column] = data[column];
                 }
 
             for (let column of socialMediaColumns)
-                if (data[column]) {
+                if (column in data) {
                     updatedColumns++;
                     professional.user.socialmediaCatalog[column] = data[column];
                 }
@@ -199,77 +199,35 @@ module.exports = class ProfessionalServices {
             if (updatedColumns > 0)
                 await professional.save();
 
-            return { message: responseMessages.USER_UPDATED, content: professional };
+            return { message: responses.USER_UPDATED, content: professional };
         } catch (error) {
-            return { message: error.message, content: error };
+            throw error;
         }
     };
 
     async delete(id) {
         try {
-            let professional = await Professional.findByPk(id,
+            let professional = await ProfessionalModel.findByPk(id,
                 {
                     include: {
-                        association: Professional.User,
-                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog]
+                        association: ProfessionalModel.User,
+                        include: [UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog]
                     }
                 });
             if (!professional) {
-                professional = await Professional.findOne({
+                professional = await ProfessionalModel.findOne({
                     where: { userId: id },
                     include: {
-                        association: Professional.User,
-                        include: [User.Adress, User.Phonelist, User.SocialMediaCatalog]
+                        association: ProfessionalModel.User,
+                        include: [UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog]
                     }
                 });
-                if (!professional) return { message: responseMessages.USER_NOT_FOUND, content: null };
+                if (!professional) return { message: responses.USER_NOT_FOUND, content: null };
             }
             await professional.destroy();
-            return { message: responseMessages.USER_DELETED, content: null };
+            return { message: responses.USER_DELETED, content: professional };
         } catch (error) {
-            return { message: error.message, content: error };
+            throw error;
         }
     };
 };
-
-//helper functions
-let generateSelectQuery = attributes => {
-    let professionalAttributes = [
-        modelsStructure.professional.id,
-        modelsStructure.professional.actuationFields,
-        modelsStructure.professional.skills
-    ];
-    let userAttributes = [
-        modelsStructure.user.firstname,
-        modelsStructure.user.lastname,
-        modelsStructure.user.email
-    ];
-    let phonelistAttributes = [
-        modelsStructure.phonelist.whatsapp
-    ];
-    let adressAttributes = [];
-    let socialMediaAttributes = [];
-
-    let attArr = []
-
-    if (Array.isArray(attributes)) attArr = [...attributes];
-    else attArr = attributes ? Object.keys(attributes) : [];
-
-    if (attArr.length > 0) {
-        professionalAttributes = Object.keys(modelsStructure.professional).filter(column => attArr.includes(column));
-        userAttributes = Object.keys(modelsStructure.user).filter(column => attArr.includes(column));
-        userAttributes = userAttributes.length > 0 ? userAttributes : [modelsStructure.user.id];
-        adressAttributes = Object.keys(modelsStructure.adress).filter(column => attArr.includes(column));
-        phonelistAttributes = Object.keys(modelsStructure.phonelist).filter(column => attArr.includes(column));
-        socialMediaAttributes = Object.keys(modelsStructure.socialmediaList).filter(column => attArr.includes(column));
-    };
-
-    let queryOptions = { attributes: professionalAttributes, include: { association: Professional.User, include: [] } };
-
-    if (userAttributes.length > 0) queryOptions.include.attributes = userAttributes;
-    if (adressAttributes.length > 0) queryOptions.include.include.push({ association: User.Adress, attributes: adressAttributes });
-    if (phonelistAttributes.length > 0) queryOptions.include.include.push({ association: User.Phonelist, attributes: phonelistAttributes });
-    if (socialMediaAttributes.length > 0) queryOptions.include.include.push({ association: User.SocialMediaCatalog, attributes: socialMediaAttributes });
-
-    return queryOptions;
-}
