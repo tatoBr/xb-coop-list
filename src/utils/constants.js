@@ -1,59 +1,59 @@
 module.exports = {
     locale: 'pt-BR',
-    modelsStructure: {
-        user: {
-            USER_ID: 'id',
-            USERNAME: 'username',
-            EMAIL: 'email',
-            PICTURE: 'picture',
-            FIRSTNAME: 'firstname',
-            LASTNAME: 'lastname',
-            BIRTHDATE: 'birthdate',
-            CPF: 'cpf',
-            PASSWORD: 'password',
-            ACCESS_LEVEL: 'accessLevel',
-            REFRESH_TOKEN: 'refreshToken',
-            LOGIN_ATTEMPTS: 'loginAttempts',
-            LOGIN_WAIT_TIME: 'loginWaitTime' 
-        },
-        adress: {
-            ADRESS_ID: 'id',
-            CEP: 'cep',
-            STREET: 'street',
-            NUMBER: 'number',
-            COMPLEMENT: 'complement',
-            DISTRICT: 'district',
-            COUNTY: 'county',
-            STATE: 'state',
-            COUNTRY: 'country'
-        },
-        phonelist: {
-            PHONELIST_ID: 'id',
-            HOMEPHONE: 'homephone',
-            WORKPHONE: 'workphone',
-            WHATSAAPP: 'whatsapp',
-            OTHERPHONES: 'otherphones',
-        },
-        socialmediaList: {
-            SOCIALMEDIAS_ID: 'id',
-            INSTAGRAM: 'instagram',
-            FACEBOOK: 'facebook',
-            YOUTUBE: 'youtube',
-            TIKTOK: 'tiktok',
-            TWITTER: 'twitter',
-            LINKEDIN: 'linkedin',
-            CLUBHOUSE: 'clubhouse'
-        },
-        professional: {
-            PROFESSIONAL_ID: 'id',
-            ACTUATION_FIELDS: 'actuationFields',
-            SKILLS: 'skills',
-            EXPERIENCE_LEVEL: 'experienceLevel',
-            PORTIFOLIO_URL: 'portifolioUrl',
-            ABOUT: 'about',
-            STATUS: 'status' 
-        }
-    },
+    // modelsStructure: {
+    //     user: {
+    //         USER_ID: 'id',
+    //         USERNAME: 'username',
+    //         EMAIL: 'email',
+    //         PICTURE: 'picture',
+    //         FIRSTNAME: 'firstname',
+    //         LASTNAME: 'lastname',
+    //         BIRTHDATE: 'birthdate',
+    //         CPF: 'cpf',
+    //         PASSWORD: 'password',
+    //         ACCESS_LEVEL: 'accessLevel',
+    //         REFRESH_TOKEN: 'refreshToken',
+    //         LOGIN_ATTEMPTS: 'loginAttempts',
+    //         LOGIN_WAIT_TIME: 'loginWaitTime' 
+    //     },
+    //     adress: {
+    //         ADRESS_ID: 'id',
+    //         CEP: 'cep',
+    //         STREET: 'street',
+    //         NUMBER: 'number',
+    //         COMPLEMENT: 'complement',
+    //         DISTRICT: 'district',
+    //         COUNTY: 'county',
+    //         STATE: 'state',
+    //         COUNTRY: 'country'
+    //     },
+    //     phonelist: {
+    //         PHONELIST_ID: 'id',
+    //         HOMEPHONE: 'homephone',
+    //         WORKPHONE: 'workphone',
+    //         WHATSAAPP: 'whatsapp',
+    //         OTHERPHONES: 'otherphones',
+    //     },
+    //     socialmediaList: {
+    //         SOCIALMEDIAS_ID: 'id',
+    //         INSTAGRAM: 'instagram',
+    //         FACEBOOK: 'facebook',
+    //         YOUTUBE: 'youtube',
+    //         TIKTOK: 'tiktok',
+    //         TWITTER: 'twitter',
+    //         LINKEDIN: 'linkedin',
+    //         CLUBHOUSE: 'clubhouse'
+    //     },
+    //     professional: {
+    //         PROFESSIONAL_ID: 'id',
+    //         ACTUATION_FIELDS: 'actuationFields',
+    //         SKILLS: 'skills',
+    //         EXPERIENCE_LEVEL: 'experienceLevel',
+    //         PORTIFOLIO_URL: 'portifolioUrl',
+    //         ABOUT: 'about',
+    //         STATUS: 'status' 
+    //     }
+    // },
     responses: {
         USER_SAVED: 'USER SAVED SUCCESSFULLY',
         USER_NOT_SAVED: 'THE SERVER WAS UNABLE TO SAVE THE USER',

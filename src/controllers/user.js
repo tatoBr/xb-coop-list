@@ -1,14 +1,12 @@
-const UserServices = require( '../services/user' );
-const userServices = new UserServices();
-
-const { responses } = require( '../utils/constants' )
-const { modelsStructure, httpStatusCodes } = require( '../utils/constants' );
-const { OK, CREATED, ACCEPTED, NO_CONTENT, NOT_MODIFIED, BAD_REQUEST, UNAUTHORIZED, FORBIDEN, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR } = httpStatusCodes
-
-const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, LOGIN_WAIT_TIME, LOGIN_ATTEMPTS, ACCESS_LEVEL, REFRESH_TOKEN} = modelsStructure.user;
 const http = require( 'http' );
 const { clearAccessToken } = require('../middlewares/authorization');
 
+const { responses } = require( '../utils/constants' )
+const { httpStatusCodes } = require( '../utils/constants' );
+const { OK, CREATED, ACCEPTED, NO_CONTENT, NOT_MODIFIED, BAD_REQUEST, UNAUTHORIZED, FORBIDEN, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR } = httpStatusCodes
+
+const UserServices = require( '../services/user' );
+const userServices = new UserServices();
 
 module.exports = {
     login: async( req, res, next )=>{
@@ -28,10 +26,10 @@ module.exports = {
     
                 case responses.USER_AUTHENTICATED:{
                     let user = authenticationResult.content;
-                    let accessToken = await userServices.generateCredential( user[USER_ID], user[USERNAME], user[ACCESS_LEVEL ]);
+                    let accessToken = await userServices.generateCredential( user.id, user.username, user.accessLevel );
 
                     let message = responses.USER_LOGGED_IN
-                    let content = { id: user[USER_ID], accessToken } 
+                    let content = { id: user.id, accessToken } 
                     return res.status( OK ).json({ message, content });                    
                     break;
                 }
@@ -43,26 +41,25 @@ module.exports = {
             return res.json({ message: authenticationResult.message, content: authenticationResult.content });
             
         } catch (error) {
-            return res.status( code.INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
+            return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     },
 
     logout: async( req, res )=>{
-        const { id } = req.body.credentials; 
+        const { id } = req.credentials; 
         try {
-            let updateResult = await userServices.update( id, {[REFRESH_TOKEN]:""});
+            let updateResult = await userServices.update( id, { refreshToken:""});
 
             switch ( updateResult.message ) {
                 case responses.USER_UPDATED:
                 case responses.USER_NOT_MODIFIED:                                     
-                    res.status( OK ).json({ message: responses.USER_LOGGED_OUT, content: null });
-                    break;
+                    return res.status( OK ).json({ message: responses.USER_LOGGED_OUT, content: null });
+                    
                 case responses.USER_NOT_FOUND:
-                    res.status( NOT_FOUND ).json( updateResult );
-                    break;
+                    return res.status( NOT_FOUND ).json( updateResult );
+                    
                 default:
-                    res.status(INTERNAL_SERVER_ERROR ).json({ message:'Something went wrong.', content: null })
-                    break;
+                    throw new Error( 'Unexpected Response Message.');                    
             }
 
         } catch (error) {

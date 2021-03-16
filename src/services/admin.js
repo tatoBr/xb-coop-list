@@ -2,48 +2,49 @@ const bcrypt = require('bcrypt');
 const { Op } = require( 'sequelize' )
 const connection = require('../database/index');
 const UserModel = require('../models/user');
-const { responses, modelsStructure, userAccessLevel:{ admin: ADMINISTRATOR }} = require( '../utils/constants')
-const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME } = modelsStructure.user;
+const { responses, userAccessLevel:{ admin: ADMINISTRATOR }} = require( '../utils/constants');
+const { modelMapper } = require('../utils/helpers')
 
 module.exports = class AdminServices{
     async create( data ){
         const { username, email, picture, firstname, lastname, birthdate, cpf, password } = data;
-        let columns = [ USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME ];
+        let columns = [ 'id', 'username', 'email', 'picture', 'firstname', 'lastname', 'birthdate', 'cpf', 'password', 'accessLevel', 'loginAttempts', 'loginWaitTime' ];
         const t = await connection.transaction();
 
         try {
             let user = await UserModel.findOne({ where: {
                 [Op.or]: [
-                    {[ EMAIL ]: email },
-                    {[ USERNAME ]: username },
-                    {[ CPF ]: cpf }
+                    { email: email },
+                    { username: username },
+                    { cpf: cpf }
                 ]}
             });            
             if( user ) return { message: responses.USER_ALREADY_EXIST, content: user};
             
             const passwordHash = await bcrypt.hash( password, 10 );            
+            
             let admin = await UserModel.create({
-                [USERNAME]: username,
-                [EMAIL]: email,
-                [PICTURE]: picture,
-                [FIRSTNAME]: firstname,
-                [LASTNAME]: lastname,
-                [BIRTHDATE]: birthdate,
-                [CPF]: cpf,
-                [PASSWORD]: passwordHash,
-                [ACCESS_LEVEL]: ADMINISTRATOR,
-                [LOGIN_ATTEMPTS]: 0,
-                [LOGIN_WAIT_TIME]: new Date()
+                username: username,
+                email: email,
+                picture: picture,
+                firstname: firstname,
+                lastname: lastname,
+                birthdate: birthdate,
+                cpf: cpf,
+                password: passwordHash,
+                accessLevel: ADMINISTRATOR,
+                loginAttempts: 0,
+                loginWaitTime: new Date()
             },
             {
                 transaction: t
             });            
             await t.commit();
-            return { message: responses.USER_SAVED, content: mapAdmin(admin, columns, [USER_ID, USERNAME, EMAIL, PICTURE ])};
+
+            return { message: responses.USER_SAVED, content: admin };
         } catch (error) {
            throw error;
         }
-
     }
 
     async readById( id ){
@@ -95,35 +96,26 @@ module.exports = class AdminServices{
     }
 
     async authenticate( email, password ){
-        let administrator = await UserModel.findOne({
-            where: {[ columns.email ]: email },
-            attributes:[ columns.id, columns.email, columns.password ]
-        });            
+        let administrator = await UserModel.findOne({ where: {email: email }});            
         
         if( !administrator ) return { message: responseMessages.USER_NOT_FOUND, content: null };        
                 
         let now = new Date()
         ;
         
-        if( administrator[ columns.loginWaitTime ] > now)
-            return {
-                message: responseMessages.USER_IN_WAIT_TIME,
-                content: {
-                    [us.username]: user[us.username],
-                    [us.email]: user[us.email]
-                }  
-            };            
+        if( administrator.loginWaitTime > now)
+            return { message: responseMessages.USER_IN_WAIT_TIME, content: administrator };            
 
-        let passwordMatches =  await bcrypt.compare( password, user[us.password]);
+        let passwordMatches =  await bcrypt.compare( password, user.password );
         
         if( !passwordMatches ){
-            if( user[us.loginAttempts] >= MAX_LOGIN_ATTEMPTS ){
-                user[us.loginWaitTime] = new Date( Date.now() + LOGIN_WAIT_TIME );
-                user[us.loginAttempts] = 0;
+            if( user.loginAttempts >= MAX_LOGIN_ATTEMPTS ){
+                user.loginWaitTime = new Date( Date.now() + LOGIN_WAIT_TIME );
+                user.loginAttempts = 0;
                 await user.save();                
             }
             else{
-                await user.increment({[ us.loginAttempts ]: 1 });  
+                await user.increment({ loginAttempts: 1 });  
             }
             
             return {
@@ -133,18 +125,14 @@ module.exports = class AdminServices{
         }
 
         try {
-            let administrator = await UserModel.findOne({
-                where: {[ columns.email ]: email },
-                attributes:[ columns.id, columns.email, columns.password ]
-            }
-        );
+            let administrator = await UserModel.findOne({ where: { email: email }});
         
         if( !administrator ) return { message: rmsg.USER_NOT_FOUND, content: null };
 
         let passwordMatches = await bcrypt.compare( password, administrator.password );
         if( !passwordMatches ) return { message: rmsg.PASSWORD_MISMATCH, content: null }
         
-        return { message: rmsg.USER_AUTHENTICATED, content: administrator };
+        return { message: responses.USER_AUTHENTICATED, content: administrator };
 
         } catch (error) {
             throw error;

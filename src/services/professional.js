@@ -6,12 +6,7 @@ const connection = require('../database/index');
 const UserModel = require('../models/user');
 const ProfessionalModel = require('../models/professional');
 
-const { modelsStructure, professionalStatus } = require('../utils/constants');
-const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME, REFRESH_TOKEN } = modelsStructure.user;
-const { ADRESS_ID, CEP, STREET, NUMBER, COMPLEMENT, DISTRICT, COUNTY, STATE, COUNTRY } = modelsStructure.adress;
-const { PHONELIST_ID, WHATSAAPP, HOMEPHONE, WORKPHONE, OTHERPHONES } = modelsStructure.phonelist
-const { SOCIALMEDIAS_ID, INSTAGRAM, FACEBOOK, YOUTUBE, TWITTER, LINKEDIN, TIKTOK, CLUBHOUSE } = modelsStructure.socialmediaList
-const { PROFESSIONAL_ID, ACTUATION_FIELDS, SKILLS, EXPERIENCE_LEVEL, ABOUT, PORTIFOLIO_URL, STATUS } = modelsStructure.professional
+const { professionalStatus } = require('../utils/constants');
 
 const { ACTIVE, INACTIVE, IN_ANALYSIS } = professionalStatus;
 const { userAccessLevel: { professional: PROFESSIONAL }, responses } = require( '../utils/constants')
@@ -31,9 +26,9 @@ module.exports = class ProfessionalServices {
         try {           
             let user = await UserModel.findOne({ where: {
                 [Op.or]: [
-                    {[ EMAIL ]: email },
-                    {[ USERNAME ]: username },
-                    {[ CPF ]: cpf }
+                    { email: email },
+                    { username: username },
+                    { cpf: cpf }
                 ]}
             });            
             if( user ) return { message: responses.USER_ALREADY_EXIST, content: user};            
@@ -41,49 +36,49 @@ module.exports = class ProfessionalServices {
             const hash = await bcrypt.hash(password, 10);
             const professional = await ProfessionalModel.create({
                 'user': {
-                    [USERNAME]: username,
-                    [EMAIL]: email,
-                    [PICTURE]: picture,
-                    [FIRSTNAME]: firstname,
-                    [LASTNAME]: lastname,
-                    [BIRTHDATE]: birthdate,
-                    [CPF]: cpf,
-                    [PASSWORD]: hash,
-                    [ACCESS_LEVEL]: PROFESSIONAL,
-                    [LOGIN_ATTEMPTS]: 0,
-                    [LOGIN_WAIT_TIME]: new Date(),
+                    username: username,
+                    email: email,
+                    picture: picture,
+                    firstname: firstname,
+                    lastname: lastname,
+                    birthdate: birthdate,
+                    cpf: cpf,
+                    password: hash,
+                    accessLevel: PROFESSIONAL,
+                    loginAttempts: 0,
+                    loginWaitTime: new Date(),
                     'adress': {
-                        [CEP]: cep,
-                        [STREET]: street,
-                        [NUMBER]: number,
-                        [COMPLEMENT]: complement,
-                        [DISTRICT]: district,
-                        [COUNTY]: county,
-                        [STATE]: state,
-                        [COUNTRY]: country
+                        cep: cep,
+                        street: street,
+                        number: number,
+                        complement: complement,
+                        district: district,
+                        county: county,
+                        state: state,
+                        country: country
                     },
                     'phonelist': {
-                        [HOMEPHONE]: homephone,
-                        [WORKPHONE]: workphone,
-                        [WHATSAAPP]: whatsapp,
-                        [OTHERPHONES]: otherphones
+                        homephone: homephone,
+                        workphone: workphone,
+                        whatsapp: whatsapp,
+                        otherphones: otherphones
                     },
                     'socialmediaCatalog': {
-                        [INSTAGRAM]: instagram,
-                        [FACEBOOK]: facebook,
-                        [YOUTUBE]: youtube,
-                        [TIKTOK]: tiktok,
-                        [TWITTER]: twitter,
-                        [LINKEDIN]: linkedin,
-                        [CLUBHOUSE]: clubhouse
+                        instagram: instagram,
+                        facebook: facebook,
+                        youtube: youtube,
+                        tiktok: tiktok,
+                        twitter: twitter,
+                        linkedin: linkedin,
+                        clubehouse: clubhouse
                     }
                 },
-                [ACTUATION_FIELDS]: actuationFields,
-                [SKILLS]: skills,
-                [EXPERIENCE_LEVEL]: experienceLevel,
-                [PORTIFOLIO_URL]: portifolioUrl,
-                [ABOUT]: about,
-                [STATUS]: [ ACTIVE, INACTIVE, IN_ANALYSIS ][Math.floor(Math.random() * 3 )] 
+                actuationFields: actuationFields,
+                skills: skills,
+                experienceLevel: experienceLevel,
+                portifolioUrl: portifolioUrl,
+                about: about,
+                status: 'INACTIVE' 
             },
             {
                 transaction: t,
@@ -148,8 +143,8 @@ module.exports = class ProfessionalServices {
 
     async update(id, data) {
         try {
-            let profColumns = [ ACTUATION_FIELDS, SKILLS, EXPERIENCE_LEVEL, PORTIFOLIO_URL, ABOUT ];
-            let userColumns = [ FIRSTNAME, LASTNAME, PICTURE, BIRTHDATE ];
+            let profColumns = [ 'actuationFields', 'skills', 'experienceLevel', 'portifolioUrl', 'about' ];
+            let userColumns = [ 'firstname', 'lastname', 'picture', 'birthdate' ];
             let adressColumns = Object.values(modelsStructure.adress);
             let socialMediaColumns = Object.values(modelsStructure.socialmediaList);
             let updatedColumns = 0;

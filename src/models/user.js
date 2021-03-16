@@ -5,53 +5,50 @@ const AdressModel = require( './adress' );
 const PhonelistModel = require( './phonelist' );
 const SocialMediaCatalogModel = require( './socialMediaCatalog' );
 
-const { modelsStructure : { user }} = require('../utils/constants');
-const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, ACCESS_LEVEL, LOGIN_ATTEMPTS, LOGIN_WAIT_TIME, REFRESH_TOKEN } = user;
-
 const User = connection.define('user', {
-    [USER_ID]: {
+    id: {
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.UUIDV1,
         allowNull: false,
         unique: true,
         primaryKey: true
     },
-    [USERNAME]: {
+    username: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
         unique: true        
     },
-    [EMAIL]: {
+    email: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
         unique: true
     },
-    [PICTURE]: {
+    picture: {
         type: Sequelize.DataTypes.BLOB( 'medium' ),
         allowNull: false
     },
-    [BIRTHDATE]: {
+    birthdate: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [FIRSTNAME]: Sequelize.DataTypes.STRING,
-    [LASTNAME]: Sequelize.DataTypes.STRING,
-    [CPF]: {
+    firstname: Sequelize.DataTypes.STRING,
+    lastname: Sequelize.DataTypes.STRING,
+    cpf: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
         unique: true
     },
-    [ACCESS_LEVEL]: {
+    accessLevel: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false,
     },
-    [PASSWORD]: {
+    password: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [REFRESH_TOKEN]: Sequelize.DataTypes.TEXT,
-    [LOGIN_ATTEMPTS]: Sequelize.DataTypes.INTEGER,
-    [LOGIN_WAIT_TIME]: Sequelize.DataTypes.DATE    
+    refreshToken: Sequelize.DataTypes.TEXT,
+    loginAttempts: Sequelize.DataTypes.INTEGER,
+    loginWaitTime: Sequelize.DataTypes.DATE    
 });
 
 User.Adress = User.belongsTo( AdressModel, { foreignKey: 'userAdress', onDelete: 'cascade', hooks: true });

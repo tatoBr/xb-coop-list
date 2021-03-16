@@ -7,19 +7,15 @@ const userServices = new UserServices()
 const ProfessionalServices = require( '../services/professional' );
 const professionalServices = new ProfessionalServices();
 
-const { responses, modelsStructure, httpStatusCodes, userAccessLevel:{ admin: ADMINISTRATOR }} = require( '../utils/constants' );
-
-const { USER_ID, USERNAME, PICTURE, FIRSTNAME, LASTNAME, EMAIL, BIRTHDATE, CPF } = modelsStructure.user
-const { ACTUATION_FIELDS, SKILLS, STATUS } = modelsStructure.professional;
-const { WHATSAAPP } = modelsStructure.phonelist;
+const { responses, httpStatusCodes, userAccessLevel:{ admin: ADMINISTRATOR }} = require( '../utils/constants' );
 
 const { OK, CREATED, NO_CONTENT, NOT_MODIFIED, NOT_FOUND, UNAUTHORIZED, CONFLICT, INTERNAL_SERVER_ERROR } = httpStatusCodes;
 
-const { modelMapper, filterQueryParams } = require( '../utils/helpers')
+const { modelMapper, filterQueryParams } = require( '../utils/helpers');
 
 module.exports = {
     post: async( req, res )=>{                
-        let { id, accessLevel } = req.body.credentials;
+        let { id, accessLevel } = req.credentials;
         if( accessLevel !== ADMINISTRATOR )
             return res.status( UNAUTHORIZED ).json({ message: responses.UNAUTHORIZED, content: null });
 
@@ -35,11 +31,10 @@ module.exports = {
                     break;
             
                 default:
-                    res.status( INTERNAL_SERVER_ERROR );
-                    break;
+                    throw new Error( 'Unexpected Response Message.');
             }
 
-            let content = modelMapper( createResult.content, [ USER_ID, USERNAME, EMAIL, PICTURE, CPF ]);
+            let content = modelMapper( createResult.content,[ 'id', 'username', 'email', 'picture', 'cpf' ]);
             let message = createResult.message;
             return res.json({ message, content });            
         } catch (error) {
@@ -48,7 +43,7 @@ module.exports = {
     },
 
     get: async( req, res ) => {        
-        let { id, accessLevel, username } = req.body.credentials;
+        let { id, accessLevel, username } = req.credentials;
         if( accessLevel !== ADMINISTRATOR )
             return res.status( UNAUTHORIZED ).json({ message: responses.UNAUTHORIZED, content: null });
 
@@ -62,11 +57,10 @@ module.exports = {
                     res.status( NOT_FOUND )                    
                 break;                
                 default:
-                    res.status( OK )
-                    break;
+                    throw new Error( 'Unexpected Response Message.');
             }
             let message = readResult.message;
-            let content = modelMapper( readResult.content, [ USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE ])
+            let content = modelMapper( readResult.content, [ 'id', 'username', 'email', 'picture', 'firstname', 'lastname', 'birthdate' ])
             return res.json({ message, content });
         } catch (error) {
             return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
@@ -74,7 +68,7 @@ module.exports = {
     },
 
     patch: async( req, res ) => {
-        let { id, accessLevel } = req.body.credentials;
+        let { id, accessLevel } = req.credentials;
         let data = req.body;
 
         if( accessLevel !== ADMINISTRATOR )
@@ -93,11 +87,10 @@ module.exports = {
                     res.status( NOT_FOUND );
                     break;
                 default:
-                    res.status( OK );
-                    break;
+                    throw new Error( 'Unexpected Response Message.');
             }
             let message = updateResult.message;
-            let content = modelMapper( updateResult.content, [ USER_ID, USERNAME, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE ]);
+            let content = modelMapper( updateResult.content, [ 'id', 'username', 'picture', 'firstname', 'lastname', 'birthdate' ]);
             res.json({message, content});
         } catch (error) {
             return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
@@ -105,7 +98,7 @@ module.exports = {
     },
 
     delete: async( req, res )=>{
-        let { accessLevel } = req.body.credentials;
+        let { accessLevel } = req.credentials;
         let { email, password } = req.body;
 
         if( accessLevel !== ADMINISTRATOR )
@@ -124,22 +117,22 @@ module.exports = {
                         res.status( NOT_FOUND );
                         break;                
                     default:
-                        res.status( OK );
-                        break;
+                        throw new Error( 'Unexpected Response Message.');
                 }
                 let message = deleteResult.message;
-                let content = modelMapper( deleteResult.content, [ USER_ID, USERNAME, EMAIL ]);
+                let content = modelMapper( deleteResult.content, [ 'id', 'username', 'email' ]);
+                
                 return res.json({ message, content });            
             } 
 
-            return res.status(404).json({ authentication: authResult })      
+            return res.status( NOT_FOUND ).json({ authentication: authResult })      
         } catch (error) {
             return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     },
 
     postProfessional: async( req, res )=>{
-        let { id, accessLevel } = req.body.credentials;
+        let { id, accessLevel } = req.credentials;
         if( accessLevel !== ADMINISTRATOR )
             return res.status( UNAUTHORIZED ).json({ message: responses.UNAUTHORIZED, content: null });
         
@@ -148,8 +141,8 @@ module.exports = {
         
             switch (createResult.message) {
                 case responses.USER_SAVED:{
-                    let user = modelMapper( createResult.content.user, [ USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE ]);
-                    let professional = modelMapper( createResult.content,[ ACTUATION_FIELDS, SKILLS, STATUS ]);
+                    let user = modelMapper( createResult.content.user, [ 'id', 'username', 'email', 'picture', 'firstname', 'lastname', 'birthdate' ]);
+                    let professional = modelMapper( createResult.content,[ 'actuantionFields', 'skills', 'status' ]);
 
                     let message = createResult.message;
                     let content = { ...user, ...professional };
@@ -159,7 +152,7 @@ module.exports = {
                 case responses.USER_ALREADY_EXIST:{
 
                     let message = createResult.message;
-                    let content = modelMapper( createResult.content.user, [ USERNAME, EMAIL, CPF ]);
+                    let content = modelMapper( createResult.content.user, [ 'username', 'email', 'cpf' ]);
 
                     return res.status( CONFLICT ).json({ message, content });                    
                 }
@@ -173,7 +166,7 @@ module.exports = {
     },
 
     getProfessionals: async( req, res )=>{
-        let { id, accessLevel } = req.body.credentials;
+        let { id, accessLevel } = req.credentials;
         if( accessLevel !== ADMINISTRATOR )
             return res.status( UNAUTHORIZED ).json({ message: responses.UNAUTHORIZED, content: null });
 
@@ -202,11 +195,11 @@ module.exports = {
             profMapperFilter = filterQueryParams( req.query,profProperties );
         } 
         else{
-            userMapperFilter = [ USER_ID, USERNAME, EMAIL, FIRSTNAME, LASTNAME ]
+            userMapperFilter = [ 'id', 'username', 'email', 'firstname', 'lastname' ]
             adressMapperFilter = [];
-            phoneMapperFilter = [ WHATSAAPP ]
+            phoneMapperFilter = [ 'whatsapp' ]
             socialmediaMapperFilter = [];
-            profMapperFilter = [ ACTUATION_FIELDS, SKILLS, STATUS ]
+            profMapperFilter = [ 'actuantionFields', 'skills', 'status' ]
         };
 
         try {
@@ -251,7 +244,7 @@ module.exports = {
     },
 
     getProfessionalById: async( req, res )=>{
-        let { accessLevel } = req.body.credentials;
+        let { accessLevel } = req.credentials;
         if( accessLevel !== ADMINISTRATOR )
             return res.status( UNAUTHORIZED ).json({ message: responses.UNAUTHORIZED, content: null });
 
@@ -276,11 +269,11 @@ module.exports = {
             profMapperFilter = filterQueryParams( req.query,profProperties );
         } 
         else{
-            userMapperFilter = [ USER_ID, USERNAME, EMAIL, FIRSTNAME, LASTNAME ]
+            userMapperFilter = [ 'id', 'username', 'email', 'firstname', 'lastname' ]
             adressMapperFilter = [];
-            phoneMapperFilter = [ WHATSAAPP ]
+            phoneMapperFilter = [ 'whatsapp' ]
             socialmediaMapperFilter = [];
-            profMapperFilter = [ ACTUATION_FIELDS, SKILLS, STATUS ]
+            profMapperFilter = [ 'actuationFields', 'Skills', 'status' ]
         };
         try {            
             let { id } = req.params;
@@ -313,7 +306,7 @@ module.exports = {
     },
 
     patchProfessional: async( req, res )=>{
-        let { accessLevel } = req.body.credentials;
+        let { accessLevel } = req.credentials;
         if( accessLevel !== ADMINISTRATOR )
             return res.status( UNAUTHORIZED ).json({ message: responses.UNAUTHORIZED, content: null });
             
@@ -328,7 +321,7 @@ module.exports = {
 
                 case responses.USER_UPDATED:{
                     let message = updateResult.message;
-                    let content = { ...modelMapper( updateResult.content.user, [USER_ID, USERNAME, EMAIL, STATUS ]), status: updateResult.content.status} 
+                    let content = { ...modelMapper( updateResult.content.user, ['id', 'username', 'email', 'status' ]), status: updateResult.content.status} 
                     return res.status( OK ).json({ message, content });
                 }
             
@@ -342,7 +335,7 @@ module.exports = {
 
     deleteProfessional: async( req, res )=>{
         try { 
-            let { accessLevel } = req.body.credentials;
+            let { accessLevel } = req.credentials;
             if( accessLevel !== ADMINISTRATOR )
                 return res.status( UNAUTHORIZED ).json({ message: responses.UNAUTHORIZED, content: null });
 
@@ -356,7 +349,7 @@ module.exports = {
 
                 case responses.USER_DELETED:{
                     let message = deleteResult.message;
-                    let content = modelMapper( deleteResult.content.user, [ USER_ID, USERNAME, EMAIL ]);
+                    let content = modelMapper( deleteResult.content.user, [ 'id', 'username', 'email' ]);
                     return res.status( OK ).json({message, content})                
                 }                   
             

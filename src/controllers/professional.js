@@ -1,12 +1,11 @@
 const ProfessionalServices = require('../services/professional');
 
-const { modelsStructure, professionalStatus, httpStatusCodes } = require('../utils/constants');
+const { professionalStatus, httpStatusCodes } = require('../utils/constants');
 const { responses } = require('../utils/constants');
 const { modelMapper } = require( '../utils/helpers' )
 
 const professionalServices = new ProfessionalServices();
 
-const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD } = modelsStructure.user;
 const { ACTIVE, INACTIVE, IN_ANALYSIS } = professionalStatus
 const { OK, ACCEPTED, CREATED, NOT_FOUND, CONFLICT } = httpStatusCodes;
 
@@ -75,41 +74,15 @@ module.exports = {
             }
 
             default:
-                throw new Error( 'Unexpected Response Message.'); 
-        }               
-            // };
-                
-            //     if( readResult.content === null ) return res.json({ loadResult: readResult });
-            //     let mappedProfessionals = [];
-            //     let activeProfessionals = [];
-            //     if( Array.isArray( readResult.content )){
-            //         activeProfessionals = readResult.content.filter( element => element.status === ACTIVE );
-            //         mappedProfessionals = activeProfessionals.map( mapProfessional );              
-            //     };
-                
-            //     let page = parseInt(req.query.page);
-            //     let limit = parseInt(req.query.limit);
-            //     if( !page || !limit ) return res.json( readResult );
-                
-            //     let professionals = readResult.content;
-            //     let paginated;
-                
-            //     let startIndex = (page - 1) * limit;
-            //     let endIndex = startIndex + limit;
-            //     let lastIndex = mappedProfessionals.length - 1;
-                
-            //     if (startIndex > lastIndex || limit > mappedProfessionals.length ) paginated = [ ...mappedProfessionals ]
-            //     else if (endIndex > lastIndex) paginated = mappedProfessionals.slice( startIndex )
-            //     else paginated = mappedProfessionals.slice(startIndex, endIndex);
-                
-            //     return res.json( { message: readResult.message, content: paginated });
+                throw new Error( 'Unexpected Response Message.');
+            } 
                 
         } catch ( error ) {
             return res.status( INTERNAL_SERVER_ERROR ).json({ message: `Error! => ${ error.name }`, content: error.stack});
         }
     },
             
-    get: async (req, res) => {
+    get: async ( req, res ) => {
                 try {
                     let { id } = req.params;
                     let readResult = await professionalServices.readById( id );

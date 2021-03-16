@@ -1,24 +1,21 @@
 const Sequelize = require( 'sequelize' );
 const connection = require( '../database/index');
 
-const { modelsStructure: { phonelist }} = require( '../utils/constants' );
-const { PHONELIST_ID, HOMEPHONE, WORKPHONE, WHATSAAPP, OTHERPHONES } = phonelist;
-
 const Phonelist = connection.define('phonelist',{
-    [PHONELIST_ID]: {        
+    id: {        
         type: Sequelize.DataTypes.UUID,
         defaultValue: Sequelize.UUIDV1(),
         allowNull: false,
         unique: true,
         primaryKey: true       
     },
-    [HOMEPHONE]: Sequelize.DataTypes.STRING,
-    [WORKPHONE]: Sequelize.DataTypes.STRING,
-    [WHATSAAPP]: {
+    homephone: Sequelize.DataTypes.STRING,
+    workphone: Sequelize.DataTypes.STRING,
+    whatsapp: {
         type: Sequelize.DataTypes.STRING,
         allowNull: false
     },
-    [OTHERPHONES]: {
+    otherphones: {
         type: Sequelize.DataTypes.ARRAY( Sequelize.DataTypes.STRING )
     }
 });

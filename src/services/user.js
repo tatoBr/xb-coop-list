@@ -1,19 +1,17 @@
 const bcrypt = require( 'bcrypt' );
-const userModel = require( '../models/user' );
 const authorization = require( '../middlewares/authorization' );
 
-const { responses } = require( '../utils/constants' )
-const { modelsStructure } = require( '../utils/constants' );
-
-const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD, LOGIN_WAIT_TIME, LOGIN_ATTEMPTS, ACCESS_LEVEL, REFRESH_TOKEN} = modelsStructure.user;
+const { responses } = require( '../utils/constants' );
 
 const DEFAULT_LOGIN_WAIT_TIME = 60 * 3 * 1000;
 const MAX_LOGIN_ATTEMPTS = 4;
 
+const userModel = require( '../models/user' );
+
 module.exports = class UserService{
     authenticate = async ( email, password )=>{
         try {            
-            let user = await userModel.findOne({ where: {[EMAIL]: email }});            
+            let user = await userModel.findOne({ where: {email: email }});            
             
             if( !user ) {                
                 return {            
@@ -24,24 +22,24 @@ module.exports = class UserService{
             
             let now = new Date();
             
-            if( user[LOGIN_WAIT_TIME] > now)
+            if( user.loginWaitTime > now)
             return {
                 message: responses.USER_IN_WAIT_TIME,
                 content: {
-                    [ USERNAME ]: user[ USERNAME ],
-                    [ EMAIL ]: user[ EMAIL ]
+                    'username': user.username,
+                    'email': user.email
                 }  
             };            
 
-            let passwordMatches =  await bcrypt.compare( password, user[PASSWORD]);            
+            let passwordMatches =  await bcrypt.compare( password, user.password);            
             if( !passwordMatches ){
-                if( user[ LOGIN_ATTEMPTS ] >= MAX_LOGIN_ATTEMPTS ){
-                    user[ LOGIN_WAIT_TIME ] = new Date( Date.now() + DEFAULT_LOGIN_WAIT_TIME );
-                    user[ LOGIN_ATTEMPTS ] = 0;
+                if( user.loginAttempts >= MAX_LOGIN_ATTEMPTS ){
+                    user.loginWaitTime = new Date( Date.now() + DEFAULT_LOGIN_WAIT_TIME );
+                    user.loginAttempts = 0;
                     await user.save();                
                 }
                 else{
-                    await user.increment({[ LOGIN_ATTEMPTS ]: 1 });  
+                    await user.increment({ 'loginAttempts' : 1 });  
                 }
                 
                 return {
@@ -51,21 +49,21 @@ module.exports = class UserService{
             }
             
             let payload = {
-                [USER_ID]: user[USER_ID],
-                [USERNAME]: user[USERNAME],
-                [ACCESS_LEVEL]: user[ACCESS_LEVEL],            
+                'id': user.id,
+                'username': user.username,
+                'accessLevel': user.accessLevel,            
             }       
             
-            user[LOGIN_ATTEMPTS] = 0;
-            user[REFRESH_TOKEN] =  authorization.generateRefreshToken( payload );
+            user.loginAttempts = 0;
+            user.refreshToken =  authorization.generateRefreshToken( payload );
             await user.save(); 
 
             return {
                 message: responses.USER_AUTHENTICATED,
                 content : {
-                    [USER_ID]: user[USER_ID],
-                    [USERNAME]: user[USERNAME],
-                    [ACCESS_LEVEL]: user[ACCESS_LEVEL],
+                    'id': user.id,
+                    'username': user.username,
+                    'accessLevel': user.accessLevel,
                 }      
             };            
         }
@@ -74,10 +72,11 @@ module.exports = class UserService{
         }        
     };
 
-    getById = async ( id, attributes )=>{
+    getById = async ( id )=>{
         try {
             let user =  await userModel.findByPk( id );
-            if( !user ) return { message: responses.USER_NOT_FOUND, content: null }  
+            if( !user ) return { message: responses.USER_NOT_FOUND, content: null }; 
+             
             return { message: responses.USER_LOADED, content: user }          
         } catch (error) {
             throw error;
@@ -89,7 +88,7 @@ module.exports = class UserService{
             let user = await userModel.findByPk( id );
             if( !user ) return { message: responses.USER_NOT_FOUND, content: null };
 
-            let columns = [ FIRSTNAME, LASTNAME, PICTURE, BIRTHDATE, REFRESH_TOKEN ];
+            let columns = [ 'firstname', 'lastname', 'picture', 'birthdate', 'refreshToken' ];
             let updatedCols = 0;
             for( let column of columns ){
                 if( data[column] !== undefined ){
@@ -109,16 +108,16 @@ module.exports = class UserService{
 
     updateAccessToken = async ( id, oldToken ) => {
         try {
-            let user =  await userModel.findByPk( id, { attributes:[ USER_ID, USERNAME, ACCESS_LEVEL, REFRESH_TOKEN ]});            
+            let user =  await userModel.findByPk( id );            
             if( !user ) return { message: responses.USER_NOT_FOUND, content: null }  
             
             let payload = {
-                [USER_ID]: user[USER_ID],
-                [USERNAME]: user[USERNAME],
-                [ACCESS_LEVEL]: user[ACCESS_LEVEL],            
+                id: user.id,
+                username: user.username,
+                accessLevel: user.accessLevel,            
             };
 
-            let accessToken = authorization.updateAccessToken( oldToken, user[REFRESH_TOKEN], payload );
+            let accessToken = authorization.updateAccessToken( oldToken, user.refreshToken, payload );
             return { message: responses.ACCESS_TOKEN_GENERATED, content: accessToken };
 
         } catch ( error ) {

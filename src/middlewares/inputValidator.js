@@ -1,309 +1,301 @@
 const { body, param, validationResult } = require('express-validator');
-const { modelsStructure } = require('../utils/constants');
-const { USER_ID, USERNAME, EMAIL, PICTURE, FIRSTNAME, LASTNAME, BIRTHDATE, CPF, PASSWORD } = modelsStructure.user;
-const { ADRESS_ID, CEP, STREET, NUMBER, COMPLEMENT, DISTRICT, COUNTY, STATE, COUNTRY } = modelsStructure.adress;
-const { PHONELIST_ID, WHATSAAPP, HOMEPHONE, WORKPHONE, OTHERPHONES } = modelsStructure.phonelist
-const { SOCIALMEDIAS_ID, INSTAGRAM, FACEBOOK, YOUTUBE, TWITTER, LINKEDIN, TIKTOK, CLUBHOUSE } = modelsStructure.socialmediaList
-const { PROFESSIONAL_ID, ACTUATION_FIELDS, SKILLS, EXPERIENCE_LEVEL, ABOUT, PORTIFOLIO_URL, STATUS } = modelsStructure.professional
+
 const EXISTS = 0, NOT_EMPTY = 1, IS_ALPHA = 2, IS_NUMERIC = 3, IS_LENGTH = 4, IS_VALID_FORMAT = 5;
 
 module.exports = {
     user: {
         post: [
-            body(USERNAME)
+            body('username')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [USERNAME]))                
+                .withMessage(generateValidationErrorMessage(EXISTS, ['username']))                
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [USERNAME]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['username']))
                 .isAlpha('pt-BR', { ignore: '.-_0123456789' }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [USERNAME]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['username']))
                 .isLength({ min: 3, max: 32 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [USERNAME], { length: { min: 3, max: 32 } })),                
-            body(EMAIL)
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['username'], { length: { min: 3, max: 32 } })),                
+            body('email')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [EMAIL]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['email']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [EMAIL]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['email']))
                 .isEmail().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [EMAIL], { format: 'email' }))
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['email'], { format: 'email' }))
                 .normalizeEmail({ all_lowercase: true }),
-            body(PICTURE)
+            body('picture')
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [PICTURE]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['picture']))
                 .isBase64().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [PICTURE], { format: 'base64 string.' })),                
-            body([FIRSTNAME, LASTNAME])
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['picture'], { format: 'base64 string.' })),                
+            body(['firstname', 'lastname'])
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [FIRSTNAME, LASTNAME]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['firstname', 'lastname']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [FIRSTNAME, LASTNAME]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['firstname', 'lastname']))
                 .isAlpha('pt-BR', { ignore: ' \'.-_' }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [FIRSTNAME, LASTNAME]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['firstname', 'lastname']))
                 .isLength({ min: 3, max: 32 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [FIRSTNAME, LASTNAME], { length: { min: 3, max: 32 } }))
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['firstname', 'lastname'], { length: { min: 3, max: 32 } }))
                 .bail(),
-            body(BIRTHDATE)
+            body('birthdate')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [BIRTHDATE]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['birthdate']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [BIRTHDATE]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['birthdate']))
                 .isISO8601().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [BIRTHDATE], { format: 'ISO 8601 format' })),
-            body(CPF)
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['birthdate'], { format: 'ISO 8601 format' })),
+            body('cpf')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [CPF]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['cpf']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [CPF]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['cpf']))
                 .isNumeric().bail()
-                .withMessage(generateValidationErrorMessage(IS_NUMERIC, [CPF]))
+                .withMessage(generateValidationErrorMessage(IS_NUMERIC, ['cpf']))
                 .isLength(9).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [CPF], { lenght: 8 })),
-            body(PASSWORD)
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['cpf'], { lenght: 8 })),
+            body('password')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [PASSWORD]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['password']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [PASSWORD]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['password']))
                 .isLength({ min: 8 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [PASSWORD], { length: { min: 8 } }))
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['password'], { length: { min: 8 } }))
                 .isAlphanumeric()
                 .matches(/^(?=.*[0-9])(?=.*[a-zA-Z])([a-zA-Z0-9]+)$/)
                 .withMessage('\"PASSWORD\" property must contain letters and numbers combined.')
                 .bail()
         ],        
         patch: [
-            body([FIRSTNAME, LASTNAME])
+            body(['firstname', 'lastname'])
                 .trim()
                 .optional({ checkFalsy: true, nullable: true })
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [FIRSTNAME, LASTNAME]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['firstname', 'lastname']))
                 .isAlpha('pt-BR', { ignore: ' .-_' }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [FIRSTNAME, LASTNAME]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['firstname', 'lastname']))
                 .isLength({ min: 3, max: 32 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [FIRSTNAME, LASTNAME], { lenght: { min: 3, max: 32 } })),
-            body(PICTURE)
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['firstname', 'lastname'], { lenght: { min: 3, max: 32 } })),
+            body('picture')
                 .optional({checkFalsy: true, nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [PICTURE]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['picture']))
                 .isBase64().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [PICTURE], { format: 'base64 string' })),
-            body(BIRTHDATE)
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['picture'], { format: 'base64 string' })),
+            body('birthdate')
                 .trim()
                 .optional({checkFalsy: true, nullable: true })
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [BIRTHDATE]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['birthdate']))
                 .isISO8601().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [BIRTHDATE], { format: 'ISO 8601 format' })),
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['birthdate'], { format: 'ISO 8601 format' })),
         ],
         authenticate: [
-            body(EMAIL)
+            body('email')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [EMAIL]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['email']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [EMAIL]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['email']))
                 .isEmail().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [EMAIL], { format: 'email' }))
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['email'], { format: 'email' }))
                 .normalizeEmail({ all_lowercase: true }),
-            body(PASSWORD)
+            body('password')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [PASSWORD]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['password']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [PASSWORD]))                
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['password']))                
         ],
         logout: [
-            body(USER_ID)
+            body('id')
                 .trim()
-                .notEmpty()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [USER_ID]))
-                .isUUID()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [USER_ID], { format: 'uuid format' }))
-                .bail(),
+                .notEmpty().bail()
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['id']))
+                .isUUID().bail()
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['id'], { format: 'uuid format' })),
         ]
     },
     adress: {
         post: [
-            body(CEP)
+            body('cep')
                 .trim()
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [CEP]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['cep']))
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [CEP]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['cep']))
                 .isNumeric().bail()
-                .withMessage(generateValidationErrorMessage(IS_NUMERIC, [CEP]))
+                .withMessage(generateValidationErrorMessage(IS_NUMERIC, ['cep']))
                 .isLength(8).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [CEP], { length: 8 })),
-            body([STREET, DISTRICT, COUNTY, STATE, COUNTRY])
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['cep'], { length: 8 })),
+            body(['street', 'district', 'county', 'state', 'country'])
                 .trim()
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [STREET, DISTRICT, COUNTY, STATE, COUNTRY]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['street', 'district', 'county', 'state', 'country']))
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [STREET, DISTRICT, COUNTY, STATE, COUNTRY]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['street', 'district', 'county', 'state', 'country']))
                 .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [STREET, DISTRICT, COUNTY, STATE, COUNTRY]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['street', 'district', 'county', 'state', 'country']))
                 .isLength({ min: 1, max: 48 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [STREET, DISTRICT, COUNTY, STATE, COUNTRY], { lenght: { min: 1, max: 48 } })),
-            body(COMPLEMENT)
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['street', 'district', 'county', 'state', 'country'], { lenght: { min: 1, max: 48 }})),
+            body('complement')
                 .optional({ checkFalsy:true, nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [COMPLEMENT]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['complement']))
                 .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [COMPLEMENT])),
-            body(NUMBER)
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['complement'])),
+            body('number')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [NUMBER]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['number']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [NUMBER]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['number']))
                 .isNumeric().bail()
-                .withMessage(generateValidationErrorMessage(IS_NUMERIC, [NUMBER]))
+                .withMessage(generateValidationErrorMessage(IS_NUMERIC, ['number']))
                 .isLength({ min: 0, max: 6 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [STREET, DISTRICT, COUNTY, STATE, COUNTRY], { lenght: { min: 0, max: 6 } }))
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['street', 'district', 'county', 'state', 'country'], { lenght: { min: 0, max: 6 } }))
         ],
         patch: [            
-            body(CEP)
+            body('cep')
                 .optional({ checkFalsy: true, nullable: true })
                 .trim()
                 .notEmpty()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [CEP]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['cep']))
                 .isNumeric()
-                .withMessage(generateValidationErrorMessage(IS_NUMERIC, [CEP]))
+                .withMessage(generateValidationErrorMessage(IS_NUMERIC, ['cep']))
                 .isLength(8)
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [CEP], { length: 8 }))
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['cep'], { length: 8 }))
                 .bail(),
-            body([STREET, DISTRICT, COUNTY, STATE, COUNTRY])
+            body(['street', 'district', 'county', 'state', 'country'])
                 .trim()
                 .optional({ checkFalsy: true, nullable: true })
-                .notEmpty()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [STREET, DISTRICT, COUNTY, STATE, COUNTRY]))
-                .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` })
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [STREET, DISTRICT, COUNTY, STATE, COUNTRY]))
-                .isLength({ min: 1, max: 48 })
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [STREET, DISTRICT, COUNTY, STATE, COUNTRY], { lenght: { min: 1, max: 48 } }))
-                .bail(),
-            body(COMPLEMENT)
+                .notEmpty().bail()
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['street', 'district', 'county', 'state', 'country']))
+                .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` }).bail()
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['street', 'district', 'county', 'state', 'country']))
+                .isLength({ min: 1, max: 48 }).bail()
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['street', 'district', 'county', 'state', 'country'], { lenght: { min: 1, max: 48 }})),
+            body('complement')
                 .optional({ checkFalsy: true, nullable: true })
                 .trim()
-                .notEmpty()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [COMPLEMENT]))
-                .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` })
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [COMPLEMENT]))
-                .bail(),
-            body(NUMBER)
+                .notEmpty().bail()
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['complement']))
+                .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` }).bail()
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['complement'])),
+            body('number')
                 .optional({ checkFalsy: true, nullable: true })
                 .trim()
-                .notEmpty()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [NUMBER]))
-                .isNumeric()
-                .withMessage(generateValidationErrorMessage(IS_NUMERIC, [NUMBER]))
-                .isLength({ min: 0, max: 6 })
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [STREET, DISTRICT, COUNTY, STATE, COUNTRY], { lenght: { min: 0, max: 6 } }))
+                .notEmpty().bail()
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['number']))
+                .isNumeric().bail()
+                .withMessage(generateValidationErrorMessage(IS_NUMERIC, ['number']))
+                .isLength({ min: 0, max: 6 }).bail()
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['street', 'district', 'county', 'state', 'country'], { lenght: { min: 0, max: 6 } }))
         ],
     },
     phonelist: {
         post: [
-            body(WHATSAAPP)
+            body('whatsapp')
                 .exists().bail()
-                .withMessage( generateValidationErrorMessage( EXISTS, [WHATSAAPP]))
+                .withMessage( generateValidationErrorMessage( EXISTS, ['whatsapp']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [ WHATSAAPP ]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [ 'whatsapp' ]))
                 .isNumeric().bail()
-                .withMessage( generateValidationErrorMessage( IS_NUMERIC, [WHATSAAPP])),
-            body([HOMEPHONE, WORKPHONE])
+                .withMessage( generateValidationErrorMessage( IS_NUMERIC, ['whatsapp'])),
+            body(['homephone', 'workphone'])
                 .optional({ checkFalsy:true, nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [HOMEPHONE, WORKPHONE]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['homephone', 'workphone']))
                 .isNumeric().bail()
-                .withMessage( generateValidationErrorMessage( IS_NUMERIC, [HOMEPHONE, WORKPHONE])),
-            body(OTHERPHONES)
+                .withMessage( generateValidationErrorMessage( IS_NUMERIC, ['homephone', 'workphone'])),
+            body('otherphones')
                 .optional({ nullable: true })                
                 .isArray().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [OTHERPHONES], { format: 'Array' }))
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['otherphones'], { format: 'Array' }))
         ],
         patch: [            
-            body(WHATSAAPP)
+            body('whatsapp')
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [ WHATSAAPP ]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [ 'whatsapp' ]))
                 .isNumeric().bail()
-                .withMessage( generateValidationErrorMessage( IS_NUMERIC, [WHATSAAPP])),
-            body([HOMEPHONE, WORKPHONE])
+                .withMessage( generateValidationErrorMessage( IS_NUMERIC, ['whatsapp'])),
+            body(['homephone', 'workphone'])
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [HOMEPHONE, WORKPHONE]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['homephone', 'workphone']))
                 .isNumeric().bail()
-                .withMessage( generateValidationErrorMessage( IS_NUMERIC, [HOMEPHONE, WORKPHONE])),
-            body(OTHERPHONES)
+                .withMessage( generateValidationErrorMessage( IS_NUMERIC, ['homephone', 'workphone'])),
+            body('otherphones')
                 .optional({ nullable: true })                
                 .isArray().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [OTHERPHONES], { format: 'Array' }))
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['otherphones'], { format: 'Array' }))
         ]
     },
     socialmedia: {
         post: [
-            body( INSTAGRAM )
+            body( 'instagram' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [INSTAGRAM]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['instagram']))
                 .isURL().bail()
-                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [INSTAGRAM], { format: 'URL' })),
-            body( FACEBOOK )
+                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, ['instagram'], { format: 'URL' })),
+            body( 'facebook' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [FACEBOOK]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['facebook']))
                 .isURL().bail()
-                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [FACEBOOK], { format: 'URL' })),
-            body( YOUTUBE )
+                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, ['facebook'], { format: 'URL' })),
+            body( 'youtube' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [YOUTUBE]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['youtube']))
                 .isURL().bail()
-                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [YOUTUBE], { format: 'URL' })),
-            body( TWITTER )
+                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, ['youtube'], { format: 'URL' })),
+            body( 'twitter' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [ TWITTER ]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [ 'twitter' ]))
                 .isURL().bail()
-                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [ TWITTER ], { format: 'URL' })),
-            body( LINKEDIN )
+                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [ 'twitter' ], { format: 'URL' })),
+            body( 'linkedin' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [LINKEDIN]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['linkedin']))
                 .isURL().bail()
-                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [ LINKEDIN ], { format: 'URL' })),
-            body(TIKTOK)
+                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [ 'linkedin' ], { format: 'URL' })),
+            body('tiktok')
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [TIKTOK]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['tiktok']))
                 .isAlpha('pt-BR').bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [TIKTOK])),
-            body( CLUBHOUSE )
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['tiktok'])),
+            body( 'clubhouse' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [CLUBHOUSE]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['clubhouse']))
                 .isAlpha('pt-BR').bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [CLUBHOUSE]))           
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['clubhouse']))           
         ],
         patch:[
             
@@ -311,98 +303,98 @@ module.exports = {
     },
     professional: {        
         post: [
-            body( ACTUATION_FIELDS )
+            body( 'actuationFields' )
                 .exists().bail()
-                .withMessage( generateValidationErrorMessage( EXISTS, [ACTUATION_FIELDS]))             
+                .withMessage( generateValidationErrorMessage( EXISTS, ['actuationFields']))             
                 .isArray().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ ACTUATION_FIELDS ], { format: 'Array' })),
-            body( SKILLS )
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ 'actuationFields' ], { format: 'Array' })),
+            body( 'skills' )
                 .exists().bail()
-                .withMessage( generateValidationErrorMessage( EXISTS, [SKILLS]))             
+                .withMessage( generateValidationErrorMessage( EXISTS, ['skills']))             
                 .isArray().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ SKILLS ], { format: 'Array' })),
-            body(EXPERIENCE_LEVEL)
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ 'skills' ], { format: 'Array' })),
+            body('experienceLevel')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [EXPERIENCE_LEVEL]))                
+                .withMessage(generateValidationErrorMessage(EXISTS, ['experienceLevel']))                
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [EXPERIENCE_LEVEL]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['experienceLevel']))
                 .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [EXPERIENCE_LEVEL]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['experienceLevel']))
                 .isLength({ min: 3, max: 32 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [EXPERIENCE_LEVEL], { length: { min: 3, max: 32 } })),
-            body(ABOUT)
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['experienceLevel'], { length: { min: 3, max: 32 } })),
+            body('about')
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [ABOUT]))                
+                .withMessage(generateValidationErrorMessage(EXISTS, ['about']))                
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [ABOUT]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['about']))
                 .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [ABOUT]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['about']))
                 .isLength({ min: 10, max: 2000 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [ABOUT], { length: { min: 10, max: 2000 } })),
-            body( PORTIFOLIO_URL )
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['about'], { length: { min: 10, max: 2000 } })),
+            body( 'portifolioUrl' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [PORTIFOLIO_URL]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['portifolioUrl']))
                 .isURL().bail()
-                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [PORTIFOLIO_URL], { format: 'URL' })),
-            body( STATUS )
+                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, ['portifolioUrl'], { format: 'URL' })),
+            body( 'status' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [STATUS]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['status']))
                 .isAlpha().bail()
-                .withMessage( generateValidationErrorMessage( IS_ALPHA, [STATUS]))
+                .withMessage( generateValidationErrorMessage( IS_ALPHA, ['status']))
                 .isLength( 3 ).bail()
-                .withMessage( generateValidationErrorMessage( IS_LENGTH, [STATUS], { lenght: 3 }))
+                .withMessage( generateValidationErrorMessage( IS_LENGTH, ['status'], { lenght: 3 }))
         ],
         patch: [
-            param( PROFESSIONAL_ID )
+            param( 'id' )
                 .exists().bail()
-                .withMessage(generateValidationErrorMessage(EXISTS, [SOCIALMEDIAS_ID]))
+                .withMessage(generateValidationErrorMessage(EXISTS, ['id']))
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [SOCIALMEDIAS_ID]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['id']))
                 .isUUID().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [SOCIALMEDIAS_ID], { format: 'uuid' })),
-            body( ACTUATION_FIELDS )
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, ['id'], { format: 'uuid' })),
+            body( 'actuationFields' )
                 .optional({ nullable: true })             
                 .isArray().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ ACTUATION_FIELDS ], { format: 'Array' })),
-            body( SKILLS )
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ 'actuationFields' ], { format: 'Array' })),
+            body( 'skills' )
                 .optional({ nullable: true })             
                 .isArray().bail()
-                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ SKILLS ], { format: 'Array' })),
-            body(EXPERIENCE_LEVEL)
+                .withMessage(generateValidationErrorMessage(IS_VALID_FORMAT, [ 'skills' ], { format: 'Array' })),
+            body('experienceLevel')
                 .optional({ nullable: true })                
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [EXPERIENCE_LEVEL]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['experienceLevel']))
                 .isAlpha('pt-BR', { ignore: '.-_0123456789' }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [EXPERIENCE_LEVEL]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['experienceLevel']))
                 .isLength({ min: 3, max: 32 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [EXPERIENCE_LEVEL], { length: { min: 3, max: 32 } })),
-            body(ABOUT)
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['experienceLevel'], { length: { min: 3, max: 32 } })),
+            body('about')
                 .optional({ nullable: true })               
                 .trim()
                 .notEmpty().bail()
-                .withMessage(generateValidationErrorMessage(NOT_EMPTY, [ABOUT]))
+                .withMessage(generateValidationErrorMessage(NOT_EMPTY, ['about']))
                 .isAlpha('pt-BR', { ignore: ` ._-ñÑ@áéíóúÁÉÍÓÚãÃõÕ0123456789` }).bail()
-                .withMessage(generateValidationErrorMessage(IS_ALPHA, [ABOUT]))
+                .withMessage(generateValidationErrorMessage(IS_ALPHA, ['about']))
                 .isLength({ min: 10, max: 2000 }).bail()
-                .withMessage(generateValidationErrorMessage(IS_LENGTH, [ABOUT], { length: { min: 10, max: 2000 } })),
-            body( PORTIFOLIO_URL )
+                .withMessage(generateValidationErrorMessage(IS_LENGTH, ['about'], { length: { min: 10, max: 2000 } })),
+            body( 'portifolioUrl' )
                 .optional({ nullable: true })
                 .trim()
                 .notEmpty().bail()
-                .withMessage( generateValidationErrorMessage( NOT_EMPTY, [PORTIFOLIO_URL]))
+                .withMessage( generateValidationErrorMessage( NOT_EMPTY, ['portifolioUrl']))
                 .isURL().bail()
-                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, [PORTIFOLIO_URL], { format: 'URL' }))
+                .withMessage( generateValidationErrorMessage( IS_VALID_FORMAT, ['portifolioUrl'], { format: 'URL' }))
         ],
         getById: [
-            param(USER_ID)
+            param('id')
             .exists().bail()
             .isUUID().bail()
         ]       

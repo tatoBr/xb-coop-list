@@ -1,6 +1,5 @@
 const router = require('express').Router();
 const adminController = require( '../controllers/admin' );
-const professionalController = require( '../controllers/professional');
 const {
     user: validateUser,
     adress: validateAdress,
