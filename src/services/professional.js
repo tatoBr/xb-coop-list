@@ -87,7 +87,7 @@ module.exports = class ProfessionalServices {
                     include: [UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog]
                 }
             });
-            await t.commit()
+            await t.commit()            
             return { message: responses.USER_SAVED, content: professional };
 
         } catch (error) {
@@ -131,7 +131,7 @@ module.exports = class ProfessionalServices {
                     include: [ UserModel.Adress, UserModel.Phonelist, UserModel.SocialMediaCatalog ]
                 }
             });
-
+            
             if (professionals.length > 0)
                 return { message:  responses.USERS_LOADED, content: professionals };
 
@@ -145,8 +145,10 @@ module.exports = class ProfessionalServices {
         try {
             let profColumns = [ 'actuationFields', 'skills', 'experienceLevel', 'portifolioUrl', 'about' ];
             let userColumns = [ 'firstname', 'lastname', 'picture', 'birthdate' ];
-            let adressColumns = Object.values(modelsStructure.adress);
-            let socialMediaColumns = Object.values(modelsStructure.socialmediaList);
+            let adressColumns = ['cep', 'street', 'number', 'district', 'county', 'state', 'country'];          
+            let phonelistColumns = [ 'homephone', 'workphone', 'whatsapp', 'otherphones' ];
+            let socialMediaColumns = ['instagram', 'facebook', 'youtube', 'tiktok', 'twitter', 'linkedin', 'clubhouse' ];                                  
+
             let updatedColumns = 0;
 
             let professional = await ProfessionalModel.findByPk( id, {
@@ -185,16 +187,25 @@ module.exports = class ProfessionalServices {
                     professional.user.adress[column] = data[column];
                 }
 
+            for (let column of phonelistColumns)
+                if (column in data) {
+                    updatedColumns++;
+                    professional.user.phonelist[column] = data[column];
+                }
+
             for (let column of socialMediaColumns)
                 if (column in data) {
                     updatedColumns++;
                     professional.user.socialmediaCatalog[column] = data[column];
                 }
 
-            if (updatedColumns > 0)
+            if (updatedColumns > 0){
                 await professional.save();
+                return { message: responses.USER_UPDATED, content: professional };
+            }
 
-            return { message: responses.USER_UPDATED, content: professional };
+            return { message: responses.USER_NOT_MODIFIED, content: professional }
+
         } catch (error) {
             throw error;
         }

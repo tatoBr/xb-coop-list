@@ -7,7 +7,7 @@ const { modelMapper } = require( '../utils/helpers' )
 const professionalServices = new ProfessionalServices();
 
 const { ACTIVE, INACTIVE, IN_ANALYSIS } = professionalStatus
-const { OK, ACCEPTED, CREATED, NOT_FOUND, CONFLICT } = httpStatusCodes;
+const { OK, ACCEPTED, CREATED, NOT_FOUND, CONFLICT, INTERNAL_SERVER_ERROR } = httpStatusCodes;
 
 
 module.exports = {
@@ -18,13 +18,13 @@ module.exports = {
             switch (createResult.message) {
                 case responses.USER_SAVED:{
                     let message = createResult.message;
-                    let content = modelMapper( createResult.content.user, [ USER_ID, USERNAME, EMAIL ]);
+                    let content = modelMapper( createResult.content.user, [ 'id', 'username', 'email' ]);
                     return res.status( CREATED ).json({ message, content });
                     
                 }
                 case responses.USER_ALREADY_EXIST:{
                     let message = createResult.message;
-                    let content = modelMapper( createResult.content, [ USERNAME, EMAIL, CPF ]);
+                    let content = modelMapper( createResult.content, [ 'username', 'email', 'cpf' ]);
                     return res.status( CONFLICT ).json({ message, content });                   
                 }
                 default:

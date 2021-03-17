@@ -8,7 +8,6 @@ const { modelMapper } = require('../utils/helpers')
 module.exports = class AdminServices{
     async create( data ){
         const { username, email, picture, firstname, lastname, birthdate, cpf, password } = data;
-        let columns = [ 'id', 'username', 'email', 'picture', 'firstname', 'lastname', 'birthdate', 'cpf', 'password', 'accessLevel', 'loginAttempts', 'loginWaitTime' ];
         const t = await connection.transaction();
 
         try {
@@ -138,12 +137,4 @@ module.exports = class AdminServices{
             throw error;
         }
     }
-}
-
-function mapAdmin( admin, columns, attributes ){    
-    let mapped = {};
-    for( let attribute of attributes ){
-        if( columns.includes( attribute )) mapped[attribute] = admin[attribute]
-    }
-    return mapped;
 }
