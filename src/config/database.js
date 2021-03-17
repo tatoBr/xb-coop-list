@@ -5,6 +5,7 @@ module.exports = {
     password: process.env.DATABASE_PASSWORD || 'ea69ef26309a63424a3e6fc4114e6b6fe7844a14e99d8124e6c6cdbf53a104ec',
     database: process.env.DATABASE || 'd9tdeti221lb7q',
     dialect: 'postgres',
+    logging: false,
     dialectOptions: {
         ssl: {
             require: true,
