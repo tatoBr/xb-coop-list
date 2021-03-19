@@ -39,7 +39,6 @@ module.exports = class AdminServices{
                 transaction: t
             });            
             await t.commit();
-
             return { message: responses.USER_SAVED, content: admin };
         } catch (error) {
            throw error;
@@ -48,9 +47,9 @@ module.exports = class AdminServices{
 
     async readById( id ){
         try {
-            let administrator = await UserModel.findByPk( id );
+            let administrator = await UserModel.findByPk( id );            
             if( !administrator )
-                return { message: responses.USER_NOT_FOUND, content: null };
+                return { message: responses.USER_NOT_FOUND, content: administrator };
             
             return { message: responses.USER_LOADED, content: administrator }            
         } catch (error) {
@@ -89,50 +88,6 @@ module.exports = class AdminServices{
             await administrator.destroy();
 
             return { message:responses.USER_DELETED, content: administrator };
-        } catch (error) {
-            throw error;
-        }
-    }
-
-    async authenticate( email, password ){
-        let administrator = await UserModel.findOne({ where: {email: email }});            
-        
-        if( !administrator ) return { message: responseMessages.USER_NOT_FOUND, content: null };        
-                
-        let now = new Date()
-        ;
-        
-        if( administrator.loginWaitTime > now)
-            return { message: responseMessages.USER_IN_WAIT_TIME, content: administrator };            
-
-        let passwordMatches =  await bcrypt.compare( password, user.password );
-        
-        if( !passwordMatches ){
-            if( user.loginAttempts >= MAX_LOGIN_ATTEMPTS ){
-                user.loginWaitTime = new Date( Date.now() + LOGIN_WAIT_TIME );
-                user.loginAttempts = 0;
-                await user.save();                
-            }
-            else{
-                await user.increment({ loginAttempts: 1 });  
-            }
-            
-            return {
-                message: responseMessages.PASSWORD_MISMATCH,
-                content: null
-            };     
-        }
-
-        try {
-            let administrator = await UserModel.findOne({ where: { email: email }});
-        
-        if( !administrator ) return { message: rmsg.USER_NOT_FOUND, content: null };
-
-        let passwordMatches = await bcrypt.compare( password, administrator.password );
-        if( !passwordMatches ) return { message: rmsg.PASSWORD_MISMATCH, content: null }
-        
-        return { message: responses.USER_AUTHENTICATED, content: administrator };
-
         } catch (error) {
             throw error;
         }
