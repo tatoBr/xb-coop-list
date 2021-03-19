@@ -32,7 +32,7 @@ let data = {
     password:"3mDYCNkRjdWyGJR6o5qwJ63CHqzVnqs"
 }
 
-test(`response message from service.create() should be ${responses.USER_ALREADY_EXIST }`, async() => {
+test(`response message from admin's service.create() should be ${responses.USER_ALREADY_EXIST }`, async() => {
     let response = await service.create( defaultUser );
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -41,7 +41,7 @@ test(`response message from service.create() should be ${responses.USER_ALREADY_
     expect(response.message).toMatch( responses.USER_ALREADY_EXIST );
 });
 
-test(`response message from service.create() should be ${ responses.USER_SAVED }`, async() => {
+test(`response message from admin's service.create() should be ${ responses.USER_SAVED }`, async() => {
     let response = await service.create( data );
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -51,7 +51,7 @@ test(`response message from service.create() should be ${ responses.USER_SAVED }
     expect(response.message).toMatch( responses.USER_SAVED );
 });
 
-test(`response content from service.create() should have all user's model properties`, async()=>{    
+test(`response content from admin's service.create() should have all user's model properties`, async()=>{    
     let response = await service.create( data );
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -75,7 +75,7 @@ test(`response content from service.create() should have all user's model proper
     expect(user).toHaveProperty( 'loginWaitTime' );
 });
 
-test(`response message from service.readById() should be ${responses.USER_NOT_FOUND }`,async () => {
+test(`response message from admin's service.readById() should be ${responses.USER_NOT_FOUND }`,async () => {
     let response = await service.readById();
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -84,7 +84,7 @@ test(`response message from service.readById() should be ${responses.USER_NOT_FO
     expect(response.message).toMatch( responses.USER_NOT_FOUND );
 });
 
-test(`response message from service.readById() should be ${responses.USER_LOADED}`, async()=>{
+test(`response message from admin's service.readById() should be ${responses.USER_LOADED}`, async()=>{
     let response = await service.readById(defaultUser.id); 
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -94,7 +94,7 @@ test(`response message from service.readById() should be ${responses.USER_LOADED
     expect(response.message).toMatch( responses.USER_LOADED );
 });
 
-test(`response content from service.readById() should have all user's model properties`, async()=>{    
+test(`response content from admin's service.readById() should have all user's model properties`, async()=>{    
     let response = await service.readById(defaultUser.id);    
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -119,7 +119,7 @@ test(`response content from service.readById() should have all user's model prop
     expect(user).toHaveProperty( 'loginWaitTime' );
 });
 
-test(`response message from service.update() should be ${responses.USER_NOT_FOUND}`, async () => {
+test(`response message from admin's service.update() should be ${responses.USER_NOT_FOUND}`, async () => {
     let response = await service.update( null, data );
 
     expect(response).not.toBeUndefined();
@@ -130,7 +130,7 @@ test(`response message from service.update() should be ${responses.USER_NOT_FOUN
     expect(response.message).toMatch(responses.USER_NOT_FOUND);  
 })
 
-test(`response message from service.update() should be ${responses.USER_NOT_MODIFIED}`, async () => {
+test(`response message from admin's  service.update() should be ${responses.USER_NOT_MODIFIED}`, async () => {
     let response = await service.update( defaultUser.id, {});
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -141,7 +141,7 @@ test(`response message from service.update() should be ${responses.USER_NOT_MODI
     expect(response.message).toMatch(responses.USER_NOT_MODIFIED);  
 });
 
-test(`response message from service.update() should be ${responses.USER_UPDATED}`, async () => {
+test(`response message from admin's service.update() should be ${responses.USER_UPDATED}`, async () => {
     let response = await service.update( defaultUser.id, data);
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -152,7 +152,7 @@ test(`response message from service.update() should be ${responses.USER_UPDATED}
     expect(response.message).toMatch(responses.USER_UPDATED);  
 });
 
-test(`response content from service.update() should have all user's model properties`, async()=>{    
+test(`response content from admin's service.update() should have all user's model properties`, async()=>{    
     let response = await service.update( defaultUser.id, data);    
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -177,7 +177,7 @@ test(`response content from service.update() should have all user's model proper
     expect(user).toHaveProperty( 'loginWaitTime' );
 });
 
-test(`response message from service.delete() should be ${responses.USER_NOT_FOUND}`, async () => {
+test(`response message from admin's service.delete() should be ${responses.USER_NOT_FOUND}`, async () => {
     let response = await service.delete();
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
@@ -188,7 +188,7 @@ test(`response message from service.delete() should be ${responses.USER_NOT_FOUN
     expect(response.message).toMatch(responses.USER_NOT_FOUND);  
 });
 
-test(`response message from service.delete() should be ${responses.USER_DELETED}`, async () => {
+test(`response message from admin's service.delete() should be ${responses.USER_DELETED}`, async () => {
     let response = await service.delete( defaultUser.id );
     expect(response).not.toBeUndefined();
     expect(response).toHaveProperty('message');
