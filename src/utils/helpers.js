@@ -42,7 +42,7 @@ exports.generateValidationErrorMessage = ( validationType, fields, options)=>{
     }
     else if( Array.isArray( fields )){
         n = fields.length;       
-        fieldsStr = fields.join(', ')
+        fieldsStr = fields.join(', ');
         n = fields.length;
     }
 
