@@ -1,8 +1,8 @@
 const dbMock = require('../../database/__mocks__/index');
 
 const AdressModel = require( './adress' );
-// const PhonelistModel = require( './phonelist' );
-// const SocialMediaCatalogModel = require( './socialMediaCatalog' );
+const PhonelistModel = require( './phonelist' );
+const SocialMediaCatalogModel = require( './socialMediaCatalog' );
 
 const user = dbMock.define('user', {
     id: '43a778a4-8823-11eb-8dcd-0242ac130003',
@@ -25,8 +25,8 @@ user.save = ()=>{};
 user.destroy = ()=>{};
 
 user.Adress = user.belongsTo( AdressModel, { foreignKey: 'userAdress', onDelete: 'cascade', hooks: true });
-// user.Phonelist = user.belongsTo( PhonelistModel, { foreignKey: 'userPhones', onDelete: 'cascade', hooks: true });
-// user.SocialMediaCatalog = user.belongsTo( SocialMediaCatalogModel, { foreignKey: 'userSocialmedias', onDelete: 'cascade', hooks: true });
+user.Phonelist = user.belongsTo( PhonelistModel, { foreignKey: 'userPhones', onDelete: 'cascade', hooks: true });
+user.SocialMediaCatalog = user.belongsTo( SocialMediaCatalogModel, { foreignKey: 'userSocialmedias', onDelete: 'cascade', hooks: true });
 
 user.$queryInterface.$useHandler((query, queryOptions, done )=>{    
     if( query === 'findOne'){
