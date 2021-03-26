@@ -175,29 +175,32 @@ module.exports = class ProfessionalServices {
                     professional[column] = data[column];
                 }
 
-            for (let column of userColumns)
-                if (column in data) {
-                    updatedColumns++;
-                    professional.user[column] = data[column];
+            if( professional.user ){
+                for (let column of userColumns){
+                    if (column in data) {
+                        updatedColumns++;
+                        professional.user[column] = data[column];
+                    }
+                    
+                    for (let column of adressColumns)
+                    if (column in data) {
+                        updatedColumns++;
+                        professional.user.adress[column] = data[column];
+                    }
+                    
+                    for (let column of phonelistColumns)
+                    if (column in data) {
+                        updatedColumns++;
+                        professional.user.phonelist[column] = data[column];
+                    }
+                    
+                    for (let column of socialMediaColumns)
+                    if (column in data) {
+                        updatedColumns++;
+                        professional.user.socialmediaCatalog[column] = data[column];
+                    }
                 }
-
-            for (let column of adressColumns)
-                if (column in data) {
-                    updatedColumns++;
-                    professional.user.adress[column] = data[column];
-                }
-
-            for (let column of phonelistColumns)
-                if (column in data) {
-                    updatedColumns++;
-                    professional.user.phonelist[column] = data[column];
-                }
-
-            for (let column of socialMediaColumns)
-                if (column in data) {
-                    updatedColumns++;
-                    professional.user.socialmediaCatalog[column] = data[column];
-                }
+            }
 
             if (updatedColumns > 0){
                 await professional.save();

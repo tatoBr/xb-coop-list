@@ -7,10 +7,9 @@ const { modelMapper } = require('../utils/helpers')
 
 module.exports = class AdminServices{
     async create( data ){
-        const { username, email, picture, firstname, lastname, birthdate, cpf, password } = data;
-        const t = await connection.transaction();
-
+        const t = await connection.transaction();        
         try {
+            const { username, email, picture, firstname, lastname, birthdate, cpf, password } = data;
             let user = await UserModel.findOne({ where: {
                 [Op.or]: [
                     { email: email },
@@ -40,7 +39,7 @@ module.exports = class AdminServices{
             });            
             await t.commit();
             return { message: responses.USER_SAVED, content: admin };
-        } catch (error) {
+        } catch (error) {          
            throw error;
         }
     }
@@ -52,7 +51,7 @@ module.exports = class AdminServices{
                 return { message: responses.USER_NOT_FOUND, content: administrator };
             
             return { message: responses.USER_LOADED, content: administrator }            
-        } catch (error) {
+        } catch ( error ) {
             throw error;
         }
     }
@@ -60,8 +59,7 @@ module.exports = class AdminServices{
     async update( id, data ){
         try {           
             let updatedColumns = 0;      
-            let administrator = await UserModel.findByPk( id );
-
+            let administrator = await UserModel.findByPk( id );            
             if( !administrator ) return { message: responses.USER_NOT_FOUND, content: null };
 
             for( let property in data ){
