@@ -1,6 +1,8 @@
 jest.mock('../../src/database/index.js');
 jest.mock('../../src/models/professional.js');
 jest.mock('../../src/models/user.js');
+const ProfessionalModel = require('../../src/models/professional');
+const UserModel = require('../../src/models/user');
 
 const Service = require('../../src/services/professional')
 const service = new Service();
@@ -59,6 +61,52 @@ const defaultProfessional = {
     about: 'some randon text',
     status:  'IN ANALYSIS'
 }
+
+describe('Create Function works properly', ()=>{
+    const { Op } = require('sequelize');
+    let ufindOneMock = jest.spyOn(UserModel, 'findOne');
+    let createMock = jest.spyOn(ProfessionalModel, 'create');    
+
+    beforeEach(()=>{
+        ufindOneMock.mockClear()
+        createMock.mockClear()
+    });
+
+    it(`response message should be ${responses.USER_ALREADY_EXIST}`, async () => {
+        let response = await service.create( defaultProfessional );
+
+        expect(ufindOneMock).toBeCalledWith({
+            where: {
+                [Op.or]: [
+                    { email: defaultProfessional.email },
+                    { username: defaultProfessional.username },
+                    { cpf: defaultProfessional.cpf }
+                ]
+            }
+        });
+        expect(ufindOneMock).toReturn()
+        expect(response).not.toBeUndefined();      
+
+        expect(response).toHaveProperty('message');
+        expect(response?.message).toMatch(responses.USER_ALREADY_EXIST);
+
+        expect(response).toHaveProperty('content');
+        console.log( response.content)
+        expect(response?.content).toEqual(expect.objectContaining({
+            id: '43a778a4-8823-11eb-8dcd-0242ac130003',
+            username: 'test1',
+            email: 'email@test.com',
+            picture: 'TG9yZW0gaXBzdW0gZG9sb3Igc2l0IGFtZXQsIGNvbnNlY3RldHVyIGFkaXBpc2NpbmcgZWxpdC4g',
+            birthdate: expect.any(String),
+            firstname: 'Firstname',
+            lastname: 'LastName',
+            cpf: '11111111111',
+            accessLevel: 'adm',
+        }));
+
+        ufindOneMock.mockClear()
+    });
+})
 
 test(`response message from professional's service.create() should be ${responses.USER_ALREADY_EXIST }`, async() => {
     let response = await service.create( defaultProfessional );    
